@@ -1,0 +1,80 @@
+---
+title: "Introduction"
+description: "EssentialsX is the essential plugin suite for modern Minecraft servers, providing hundreds of commands and features for CraftBukkit, Spigot, and Paper."
+---
+
+## What is EssentialsX?
+
+EssentialsX is a continuation of the original [Essentials](https://github.com/Essentials/Essentials) plugin suite, updated to support modern Minecraft and Spigot versions. The original Essentials project is no longer actively maintained for current Minecraft versions, so EssentialsX was forked to fill that gap.
+
+EssentialsX provides countless new features, performance enhancements, and fixes that are not available in the original Essentials or Spigot-Essentials. It is a drop-in replacement for the original Essentials plugin — if you are migrating from the original, you can swap the jar and keep your existing data.
+
+## Supported server software
+
+EssentialsX requires one of the following server implementations:
+
+- **CraftBukkit** — the original Bukkit server implementation
+- **Spigot** — the most widely used Bukkit fork
+- **Paper** — a high-performance Spigot fork (recommended)
+
+Other server software may work but is not tested by the EssentialsX team. Issues arising from untested software may not be supportable.
+
+## Supported Minecraft versions
+
+| Version | Status |
+|---------|--------|
+| 1.8.8   | Supported |
+| 1.9.4   | Supported |
+| 1.10.2  | Supported |
+| 1.11.2  | Supported |
+| 1.12.2  | Supported |
+| 1.13.2  | Supported |
+| 1.14.4  | Supported |
+| 1.15.2  | Supported |
+| 1.16.5  | Supported |
+| 1.17.1  | Supported |
+| 1.18.2  | Supported |
+| 1.19.4  | Supported |
+| 1.20.6  | Supported |
+| 1.21.1  | Supported |
+| 26.x    | Supported |
+
+## Requirements
+
+Before installing EssentialsX, make sure your environment meets the following requirements:
+
+- **Java 8 or higher** — the latest Java version supported by your server software is recommended
+- **CraftBukkit, Spigot, or Paper** — see supported server software above
+- **[Vault](https://dev.bukkit.org/projects/vault)** — required to enable chat prefix/suffix and group support from permissions plugins
+- **[LuckPerms](https://luckperms.net)** — recommended permissions plugin for groups and wildcards
+
+If you have an unsupported permissions plugin but still want to use wildcards, enable `use-bukkit-permissions` in `config.yml`. Otherwise, EssentialsX falls back to config-based permissions.
+
+## Module system
+
+EssentialsX is split into several optional modules. The core `EssentialsX.jar` is required, and you can add any combination of additional modules depending on what features your server needs:
+
+- **EssentialsXChat** — custom chat formatting with prefixes, suffixes, and local radius chat
+- **EssentialsXSpawn** — control spawn behavior for new players, respawns, and group-based spawn routing
+- **EssentialsXProtect** — world protection rules for fire spread, explosions, mob behavior, and PvP
+- **EssentialsXGeoIP** — look up a player's country from their IP address
+- **EssentialsXDiscord** — Discord integration for chat bridging and notifications
+- **EssentialsXDiscordLink** — link Minecraft accounts to Discord accounts
+- **EssentialsXAntiBuild** — restrict building and item usage by permission
+
+Each module is an independent jar that you drop into your `plugins/` folder alongside the core jar.
+
+<Note>
+  Need help? Join the [MOSS Discord community](https://discord.gg/casfFyh) to ask questions and get support from other EssentialsX users and the community.
+</Note>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Download EssentialsX and install it on your server step by step.
+  </Card>
+  <Card title="Configuration" icon="sliders" href="/configuration">
+    Learn how to configure EssentialsX using config.yml.
+  </Card>
+</CardGroup>

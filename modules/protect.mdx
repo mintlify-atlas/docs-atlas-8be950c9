@@ -1,0 +1,197 @@
+---
+title: "EssentialsX Protect"
+description: "Prevent griefing, control explosions, disable PvP, and restrict mob behavior with EssentialsX Protect."
+---
+
+EssentialsX Protect adds server-wide rules for world events and player damage. It does not replace a full protection or region plugin, but it gives you quick, config-based control over common hazards like fire spread, creeper explosions, TNT, and PvP without needing per-region rules.
+
+<Info>
+  EssentialsX also ships a separate **EssentialsX AntiBuild** module (`EssentialsXAntiBuild.jar`) that provides permission-based build protection. With AntiBuild, you can restrict which materials players can place, break, interact with, craft, drop, or pick up using fine-grained permissions like `essentials.build.place.<material>` and `essentials.build.break.<material>`. AntiBuild is independent of EssentialsX Protect and can be used alongside it.
+</Info>
+
+## Installation
+
+Drop `EssentialsXProtect.jar` into your `plugins/` folder alongside `EssentialsX.jar` and restart. All protect settings live in the `protect:` block of `plugins/Essentials/config.yml`.
+
+<Note>
+  EssentialsX Protect lists Essentials as a soft dependency, so it loads even if Essentials is not present. However, permission-based overrides require Essentials and a permissions plugin.
+</Note>
+
+## Explosion and Physics Protection
+
+The `protect.prevent` block lets you disable specific world events by setting them to `true`. All options default to `false` (allowed) unless noted.
+
+```yaml
+protect:
+  prevent:
+    # Fire
+    fire-spread: true            # (default: true) Stop fire spreading between blocks
+    lava-fire-spread: true       # (default: true) Stop lava from igniting nearby blocks
+    lightning-fire-spread: true  # (default: true) Stop lightning strikes from starting fires
+    flint-fire: false            # Prevent flint-and-steel from lighting fires
+
+    # Fluid flow
+    lava-flow: false
+    water-flow: false
+    water-bucket-flow: false
+
+    # Portal creation
+    portal-creation: false
+
+    # TNT
+    tnt-explosion: false
+    tnt-playerdamage: false
+    tnt-itemdamage: false
+    tnt-minecart-explosion: false
+    tnt-minecart-playerdamage: false
+    tnt-minecart-itemdamage: false
+
+    # Fireballs (ghasts, blaze, etc.)
+    fireball-explosion: false
+    fireball-fire: false
+    fireball-playerdamage: false
+    fireball-itemdamage: false
+
+    # Creepers
+    creeper-explosion: false
+    creeper-playerdamage: false
+    creeper-itemdamage: false
+    creeper-blockdamage: false
+
+    # Wither
+    witherskull-explosion: false
+    witherskull-playerdamage: false
+    witherskull-itemdamage: false
+    wither-spawnexplosion: false
+    wither-blockreplace: false
+
+    # Wind charges (1.21+)
+    windcharge-explosion: false
+
+    # Ender
+    ender-crystal-explosion: false
+    enderdragon-blockdamage: true  # (default: true) Prevent Ender Dragon from destroying blocks
+
+    # Beds and respawn anchors
+    bed-explosion: false
+    respawn-anchor-explosion: false
+```
+
+## Mob Behavior
+
+```yaml
+protect:
+  prevent:
+    # Stop mobs from targeting players
+    entitytarget: false
+
+    # Stop zombies from breaking down doors
+    zombie-door-break: false
+
+    # Stop ravagers from destroying crops
+    ravager-thief: false
+
+    # Stop sheep from eating grass
+    sheep-eat-grass: false
+
+    # Stop endermen from picking up blocks
+    enderman-pickup: false
+
+    # Prevent villager deaths
+    villager-death: false
+```
+
+### Mob transformations
+
+Prevent specific transformation events:
+
+```yaml
+protect:
+  prevent:
+    transformation:
+      charged-creeper: false    # Prevent creepers becoming charged via lightning
+      zombie-villager: false    # Prevent villagers becoming zombie villagers
+      villager: false           # Prevent zombie villagers being cured
+      witch: false              # Prevent villagers becoming witches via lightning
+      zombie-pigman: false      # Prevent pigs becoming zombified piglins via lightning
+      drowned: false            # Prevent zombies turning into drowneds
+      mooshroom: false          # Prevent mooshrooms changing color via lightning
+```
+
+### Mob spawning
+
+You can block the natural spawning of specific creature types:
+
+```yaml
+protect:
+  prevent:
+    spawn:
+      creeper: false
+      skeleton: false
+      zombie: false
+      enderman: false
+      ghast: false
+      slime: false
+      # ... add any creature type here
+```
+
+## PvP and Player Damage
+
+```yaml
+protect:
+  prevent:
+    # Disable PvP server-wide
+    pvp: false
+
+  disable:
+    fall: false
+    drown: false
+    suffocate: false
+    lavadmg: false
+    projectiles: false
+    contactdmg: false  # cacti, dripstone, berry bushes
+    firedmg: false
+```
+
+When `pvp: true`, players with the `essentials.protect.pvp` permission can still attack each other. However, they cannot attack players who lack that permission.
+
+## Creeper Explosion Height Limit
+
+Restrict creeper explosions above a certain Y-level (useful for sky-based or elevated builds) without disabling them entirely:
+
+```yaml
+protect:
+  creeper:
+    max-height: -1  # -1 = no limit; set to e.g. 128 to prevent explosions above Y=128
+```
+
+## Permissions
+
+### Damage bypass permissions
+
+Grant these permissions to allow players to receive specific damage types when you have disabled them globally:
+
+| Permission | Damage type re-enabled |
+|---|---|
+| `essentials.protect.damage.contact` | Cacti, dripstone, berry bushes |
+| `essentials.protect.damage.lava` | Lava |
+| `essentials.protect.damage.tnt` | TNT |
+| `essentials.protect.damage.tnt-minecraft` | TNT minecarts |
+| `essentials.protect.damage.creeper` | Creepers |
+| `essentials.protect.damage.fireball` | Fireballs |
+| `essentials.protect.damage.witherskull` | Wither skulls |
+| `essentials.protect.damage.projectiles` | Arrows and other projectiles |
+| `essentials.protect.damage.fall` | Fall damage |
+| `essentials.protect.damage.suffocation` | Suffocation |
+| `essentials.protect.damage.fire` | Fire |
+| `essentials.protect.damage.drowning` | Drowning |
+| `essentials.protect.damage.lightning` | Lightning |
+| `essentials.protect.damage.wither` | Wither effect |
+| `essentials.protect.damage.disable` | All damage (complete god mode) |
+
+### Other permissions
+
+| Permission | Description |
+|---|---|
+| `essentials.protect.pvp` | Participate in PvP when `prevent.pvp` is enabled |
+| `essentials.protect.entitytarget.bypass` | Allow mobs to target this player when `entitytarget` is enabled |

@@ -1,0 +1,295 @@
+---
+title: "Permissions"
+description: "Manage what players and groups can do on your server using EssentialsX's permission nodes."
+---
+
+EssentialsX uses your server's permissions plugin to control access to every command and feature. Each capability is guarded by a named permission node in the format `essentials.<feature>`. You assign these nodes to players or groups through a permissions plugin such as [LuckPerms](https://luckperms.net/).
+
+## The `essentials.*` wildcard
+
+Operators receive the `essentials.*` permission by default. This wildcard grants every EssentialsX permission, including all subcommands and features. It is equivalent to granting all individual nodes listed below.
+
+```
+essentials.*
+```
+
+<Warning>
+Granting `essentials.*` to non-operator groups gives those players access to admin commands such as `/eco`, `/give`, `/ban`, and `/vanish`. Only grant the wildcard to trusted staff groups.
+</Warning>
+
+## Wildcard patterns
+
+EssentialsX supports wildcard inheritance for permission groups that share a common prefix. Use these to grant broad access without listing every node individually.
+
+| Wildcard | What it grants |
+|---|---|
+| `essentials.home.*` | All `/home` sub-permissions |
+| `essentials.warp.*` | All `/warp` sub-permissions (including per-warp nodes) |
+| `essentials.sethome.*` | All `/sethome` sub-permissions including multiple homes |
+| `essentials.kits.*` | Access to all defined kits |
+| `essentials.signs.*` | All sign creation, use, and break permissions |
+| `essentials.gamemode.*` | All gamemode sub-permissions |
+
+<Tip>
+If your permissions plugin supports Bukkit-style wildcards, set `use-bukkit-permissions: true` in `config.yml`. When enabled, EssentialsX respects wildcard inheritance natively without requiring Vault.
+</Tip>
+
+## `essentials.gamemode.*` structure
+
+The `essentials.gamemode.*` node is defined in `plugin.yml` with explicit children, which means granting the wildcard automatically grants the following:
+
+```yaml
+essentials.gamemode.*:
+  children:
+    essentials.gamemode: true        # Access to the /gamemode command
+    essentials.gamemode.others: true # Change another player's gamemode
+    essentials.gamemode.all: true    # Access to all four gamemodes
+```
+
+You can restrict access to specific gamemodes by granting individual nodes instead:
+
+| Node | Grants |
+|---|---|
+| `essentials.gamemode.survival` | `/gamemode survival` |
+| `essentials.gamemode.creative` | `/gamemode creative` |
+| `essentials.gamemode.adventure` | `/gamemode adventure` |
+| `essentials.gamemode.spectator` | `/gamemode spectator` |
+
+---
+
+## Permission categories
+
+<AccordionGroup>
+  <Accordion title="General">
+    | Permission | Description |
+    |---|---|
+    | `essentials.help` | Access to the `/help` command |
+    | `essentials.list` | Access to the `/list` command |
+    | `essentials.info` | Access to the `/info` command |
+    | `essentials.motd` | Access to the `/motd` command |
+    | `essentials.rules` | Access to the `/rules` command |
+    | `essentials.me` | Access to the `/me` command |
+    | `essentials.msg` | Access to the `/msg` command |
+    | `essentials.mail` | Access to the `/mail` command |
+    | `essentials.afk` | Access to the `/afk` command |
+    | `essentials.afk.auto` | Player is set AFK automatically after inactivity (default: false) |
+    | `essentials.afk.kickexempt` | Player will not be kicked for being AFK |
+    | `essentials.ping` | Access to the `/ping` command |
+    | `essentials.near` | Access to the `/near` command |
+    | `essentials.compass` | Access to the `/compass` command |
+    | `essentials.depth` | Access to the `/depth` command |
+    | `essentials.getpos` | Access to the `/getpos` command |
+    | `essentials.recipe` | Access to the `/recipe` command |
+    | `essentials.playtime` | Access to the `/playtime` command |
+  </Accordion>
+
+  <Accordion title="Teleportation">
+    | Permission | Description |
+    |---|---|
+    | `essentials.home` | Access to the `/home` command |
+    | `essentials.home.others` | Teleport to another player's home |
+    | `essentials.home.bed` | Use the bed home with `/home` |
+    | `essentials.sethome` | Access to the `/sethome` command |
+    | `essentials.sethome.multiple` | Set more than one home |
+    | `essentials.sethome.multiple.<set>` | Raise home limit to a named set defined in config |
+    | `essentials.sethome.multiple.unlimited` | Set unlimited homes |
+    | `essentials.delhome` | Access to the `/delhome` command |
+    | `essentials.renamehome` | Access to the `/renamehome` command |
+    | `essentials.warp` | Access to the `/warp` command |
+    | `essentials.warp.list` | Access to the warp list |
+    | `essentials.warp.others` | Warp other players |
+    | `essentials.setwarp` | Access to the `/setwarp` command |
+    | `essentials.delwarp` | Access to the `/delwarp` command |
+    | `essentials.tpa` | Access to the `/tpa` command |
+    | `essentials.tpahere` | Access to the `/tpahere` command |
+    | `essentials.tpaccept` | Access to the `/tpaccept` command |
+    | `essentials.tpdeny` | Access to the `/tpdeny` command |
+    | `essentials.tpauto` | Access to the `/tpauto` command |
+    | `essentials.tptoggle` | Access to the `/tptoggle` command |
+    | `essentials.tp` | Access to the `/tp` command |
+    | `essentials.tp.others` | Teleport to other players |
+    | `essentials.tp.position` | Teleport to coordinates |
+    | `essentials.tphere` | Access to the `/tphere` command |
+    | `essentials.tpall` | Access to the `/tpall` command |
+    | `essentials.tpaall` | Access to the `/tpaall` command |
+    | `essentials.tppos` | Access to the `/tppos` command |
+    | `essentials.tpo` | Override `/tptoggle` with `/tpo` |
+    | `essentials.tpohere` | Override `/tptoggle` with `/tpohere` |
+    | `essentials.tpr` | Access to the `/tpr` (random teleport) command |
+    | `essentials.settpr` | Configure random teleport bounds with `/settpr` |
+    | `essentials.back` | Access to the `/back` command |
+    | `essentials.back.ondeath` | Store location on death for use with `/back` (default: false) |
+    | `essentials.back.onteleport` | Store location on teleport for use with `/back` (default: true) |
+    | `essentials.jump` | Access to the `/jump` command |
+    | `essentials.top` | Access to the `/top` command |
+    | `essentials.bottom` | Access to the `/bottom` command |
+    | `essentials.teleport.timer.bypass` | Bypass the teleport delay |
+    | `essentials.tpoffline` | Teleport to a player's last logout location |
+  </Accordion>
+
+  <Accordion title="Moderation">
+    | Permission | Description |
+    |---|---|
+    | `essentials.ban` | Access to the `/ban` command |
+    | `essentials.ban.notify` | Receive notifications when a player is banned |
+    | `essentials.ban.offline` | Ban offline players |
+    | `essentials.banip` | Access to the `/banip` command |
+    | `essentials.unban` | Access to the `/unban` command |
+    | `essentials.unbanip` | Access to the `/unbanip` command |
+    | `essentials.tempban` | Access to the `/tempban` command |
+    | `essentials.tempbanip` | Access to the `/tempbanip` command |
+    | `essentials.kick` | Access to the `/kick` command |
+    | `essentials.kick.notify` | Receive notifications when a player is kicked |
+    | `essentials.kickall` | Access to the `/kickall` command |
+    | `essentials.mute` | Access to the `/mute` command |
+    | `essentials.mute.notify` | Receive notifications when a player is muted |
+    | `essentials.mute.offline` | Mute offline players |
+    | `essentials.togglejail` | Access to the `/togglejail` command |
+    | `essentials.setjail` | Access to the `/setjail` command |
+    | `essentials.deljail` | Access to the `/deljail` command |
+    | `essentials.jails` | Access to the `/jails` command |
+    | `essentials.jail.notify` | Receive notifications when a player is jailed |
+    | `essentials.vanish` | Access to the `/vanish` command |
+    | `essentials.vanish.others` | Vanish other players |
+    | `essentials.vanish.see` | See players who are vanished |
+    | `essentials.socialspy` | Toggle social spy to see private messages |
+    | `essentials.helpop.receive` | Receive `/helpop` messages |
+    | `essentials.seen` | Access to the `/seen` command |
+    | `essentials.whois` | Access to the `/whois` command |
+    | `essentials.realname` | Look up a player's real username by nickname |
+    | `essentials.sudo` | Force another player to run a command with `/sudo` |
+    | `essentials.invsee` | View another player's inventory |
+    | `essentials.invsee.modify` | Modify items in another player's inventory |
+    | `essentials.ignore` | Access to the `/ignore` command |
+  </Accordion>
+
+  <Accordion title="Economy">
+    | Permission | Description |
+    |---|---|
+    | `essentials.balance` | Access to the `/balance` command |
+    | `essentials.balance.others` | View another player's balance |
+    | `essentials.balancetop` | Access to the `/balancetop` command |
+    | `essentials.balancetop.force` | Force a refresh of the balance top list |
+    | `essentials.pay` | Access to the `/pay` command |
+    | `essentials.pay.offline` | Pay offline players |
+    | `essentials.pay.multiple` | Pay multiple players at once |
+    | `essentials.paytoggle` | Access to the `/paytoggle` command |
+    | `essentials.eco` | Access to the `/eco` command (admin) |
+    | `essentials.eco.loan` | Allow a negative balance (overdraft) |
+    | `essentials.sell` | Access to the `/sell` command |
+    | `essentials.sell.hand` | Sell the item currently held |
+    | `essentials.sell.bulk` | Sell items in bulk |
+    | `essentials.worth` | Access to the `/worth` command |
+    | `essentials.setworth` | Access to the `/setworth` command |
+  </Accordion>
+
+  <Accordion title="Admin">
+    | Permission | Description |
+    |---|---|
+    | `essentials.god` | Access to the `/god` command |
+    | `essentials.god.others` | Toggle god mode for other players |
+    | `essentials.fly` | Access to the `/fly` command |
+    | `essentials.fly.others` | Toggle flight for other players |
+    | `essentials.fly.safelogin` | Re-enable flight on login if the player was airborne |
+    | `essentials.gamemode` | Access to the `/gamemode` command |
+    | `essentials.gamemode.*` | All gamemode sub-permissions (default: op) |
+    | `essentials.give` | Access to the `/give` command |
+    | `essentials.item` | Access to the `/item` command |
+    | `essentials.spawn` | Access to the `/spawn` command |
+    | `essentials.heal` | Access to the `/heal` command |
+    | `essentials.heal.others` | Heal other players |
+    | `essentials.feed` | Access to the `/feed` command |
+    | `essentials.feed.others` | Feed other players |
+    | `essentials.exp` | Access to the `/exp` command |
+    | `essentials.speed` | Access to the `/speed` command |
+    | `essentials.speed.bypass` | Bypass the speed cap set in config |
+    | `essentials.burn` | Access to the `/burn` command |
+    | `essentials.lightning` | Access to the `/lightning` command |
+    | `essentials.kill` | Access to the `/kill` command |
+    | `essentials.broadcast` | Access to the `/broadcast` command |
+    | `essentials.broadcastworld` | Access to the `/broadcastworld` command |
+    | `essentials.nick` | Access to the `/nick` command |
+    | `essentials.nick.color` | Use color codes in nicknames |
+    | `essentials.nick.others` | Change another player's nickname |
+    | `essentials.repair` | Access to the `/repair` command |
+    | `essentials.repair.all` | Repair all items at once |
+    | `essentials.gc` | Access to the `/gc` (server stats) command |
+    | `essentials.backup` | Access to the `/backup` command |
+    | `essentials.essentials` | Access to the `/essentials` reload command |
+    | `essentials.remove` | Access to the `/remove` (entity removal) command |
+    | `essentials.spawnmob` | Access to the `/spawnmob` command |
+    | `essentials.time` | Access to the `/time` command |
+    | `essentials.weather` | Access to the `/weather` command |
+    | `essentials.unlimited` | Access to the `/unlimited` command |
+  </Accordion>
+
+  <Accordion title="Exempt permissions">
+    These permissions protect players from moderator actions. They all default to `false` and should only be granted to trusted players or groups.
+
+    | Permission | Protects against | Default |
+    |---|---|---|
+    | `essentials.ban.exempt` | `/ban` | false |
+    | `essentials.tempban.exempt` | `/tempban` | false |
+    | `essentials.kick.exempt` | `/kick` | false |
+    | `essentials.kickall.exempt` | `/kickall` | false |
+    | `essentials.jail.exempt` | `/togglejail` | false |
+    | `essentials.mute.exempt` | `/mute` | false |
+    | `essentials.sudo.exempt` | `/sudo` | false |
+    | `essentials.invsee.preventmodify` | Inventory modification via `/invsee` | false |
+    | `essentials.kill.exempt` | `/kill` | false |
+
+    The `essentials.exempt` parent node grants all of the above at once and is convenient for trusted player ranks:
+
+    ```yaml
+    essentials.exempt:
+      children:
+        essentials.ban.exempt: true
+        essentials.kick.exempt: true
+        essentials.mute.exempt: true
+        essentials.sudo.exempt: true
+        essentials.tempban.exempt: true
+        essentials.invsee.preventmodify: true
+    ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Granting permissions with LuckPerms
+
+Use the LuckPerms `/lp` command to assign permission nodes to groups or players.
+
+**Grant a permission to a group:**
+
+```bash
+lp group default permission set essentials.home true
+lp group default permission set essentials.sethome true
+lp group default permission set essentials.warp true
+lp group default permission set essentials.tpa true
+```
+
+**Grant a wildcard to a moderator group:**
+
+```bash
+lp group moderator permission set essentials.ban true
+lp group moderator permission set essentials.kick true
+lp group moderator permission set essentials.mute true
+lp group moderator permission set essentials.vanish true
+lp group moderator permission set essentials.socialspy true
+```
+
+**Grant all EssentialsX permissions to an admin group:**
+
+```bash
+lp group admin permission set essentials.* true
+```
+
+**Deny a specific permission (override):**
+
+```bash
+lp group default permission set essentials.fly false
+```
+
+<Note>
+Permission changes take effect immediately for online players without a server restart. Use `/lp editor` for a browser-based GUI to manage permissions in bulk.
+</Note>

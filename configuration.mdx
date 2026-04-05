@@ -1,0 +1,467 @@
+---
+title: "Configuration"
+description: "Configure EssentialsX by editing plugins/Essentials/config.yml. This guide covers every major section with real config snippets."
+---
+
+EssentialsX generates its configuration file at `plugins/Essentials/config.yml` the first time it loads. The file is heavily commented and safe to edit while the server is stopped.
+
+<Tip>
+  After editing `config.yml`, run `/ess reload` in-game or from the console to apply your changes without restarting the server.
+</Tip>
+
+<Note>
+  If you use special characters such as accented letters or currency symbols, you **must** save `config.yml` as **UTF-8**, not ANSI. Saving in ANSI encoding will cause Essentials to fail to load or display garbled text.
+</Note>
+
+## Applying changes
+
+```bash
+/essentials reload
+# or the shorter alias:
+/ess reload
+```
+
+This reloads `config.yml`, `kits.yml`, `worth.yml`, and most other Essentials data files. A small number of settings (such as `respawn-listener-priority`) require a full server restart.
+
+---
+
+## Configuration sections
+
+<AccordionGroup>
+
+  <Accordion title="Global settings">
+
+    These settings control core behavior that applies across all of EssentialsX.
+
+    ```yaml
+    # Color code (0-9, a-f) for operator names. Use 'none' to disable.
+    # On 1.16+, hex codes are also accepted (e.g. #613e1d for brown).
+    ops-name-color: '4'
+
+    # Prefix prepended to all nicknames so they are distinguishable from real usernames.
+    # Players with 'essentials.nick.hideprefix' bypass this.
+    nickname-prefix: '~'
+
+    # Maximum nickname length (prefix not included).
+    max-nick-length: 15
+
+    # Regex that all requested nicknames must match. Players with
+    # 'essentials.nick.allowunsafe' can bypass this check.
+    allowed-nicks-regex: '^[a-zA-Z_0-9§]+$'
+
+    # Set to true to exclude color codes when counting nickname length.
+    ignore-colors-in-max-nick-length: false
+
+    # Hide display names of vanished players to prevent others detecting them.
+    hide-displayname-in-vanish: true
+
+    # Let Essentials update player display names (disable if another plugin does this).
+    change-displayname: true
+    ```
+
+    **Teleportation**
+
+    ```yaml
+    # Teleport players to the nearest safe block if the destination is unsafe.
+    teleport-safety: true
+
+    # Seconds players must wait between teleport commands (/home, /tp, etc.).
+    teleport-cooldown: 0
+
+    # Seconds before a teleport executes. Movement or being attacked cancels it.
+    teleport-delay: 0
+
+    # Seconds of invulnerability granted after being teleported by a command.
+    teleport-invulnerability: 4
+
+    # Teleport to the center (x.5, z.5) of the destination block.
+    teleport-to-center: true
+    ```
+
+    **AFK**
+
+    ```yaml
+    # Seconds of inactivity before marking a player as AFK.
+    # Requires 'essentials.afk.auto'. Set to -1 to disable.
+    auto-afk: 300
+
+    # Seconds before an AFK player is kicked (or afk-timeout-commands run).
+    # Set to -1 to disable.
+    auto-afk-timeout: -1
+
+    # Prevent AFK players from picking up items (useful against mob farms).
+    disable-item-pickup-while-afk: false
+
+    # Broadcast AFK status changes to the whole server.
+    broadcast-afk-message: true
+
+    # Ignore AFK players when counting players needed to sleep through the night.
+    sleep-ignores-afk-players: true
+    ```
+
+    **World and speed**
+
+    ```yaml
+    # Reset flight when a player changes worlds (disables flight without essentials.fly).
+    world-change-fly-reset: true
+
+    # Preserve a player's flight status across world changes (requires essentials.fly).
+    world-change-preserve-flying: true
+
+    # Maximum walk and fly speed ratios (0.1–1.0).
+    max-walk-speed: 0.8
+    max-fly-speed: 0.8
+    ```
+
+  </Accordion>
+
+  <Accordion title="Economy">
+
+    The economy section controls balances, currency display, and payment rules. EssentialsX provides its own economy that integrates with Vault.
+
+    ```yaml
+    # Starting balance for new players.
+    starting-balance: 0
+
+    # Currency symbol shown in balance displays.
+    currency-symbol: '$'
+
+    # Show the currency symbol after the amount instead of before.
+    # Useful for currencies like the euro (e.g. "1234.50€").
+    currency-symbol-suffix: false
+
+    # Maximum balance a player can hold.
+    max-money: 10000000000000
+
+    # Minimum balance (set to 0 to disable overdrafts).
+    # Players need 'essentials.eco.loan' to go negative.
+    min-money: -10000
+
+    # Minimum amount accepted by /pay.
+    minimum-pay-amount: 0.001
+
+    # Prevent paying players who have ignored you.
+    pay-excludes-ignore-list: false
+
+    # Log all buy/sell/trade sign interactions and /sell usage.
+    economy-log-enabled: false
+    ```
+
+    **Sell multipliers**
+
+    You can grant sell multipliers to groups via `essentials.sell.multiplier.<rank>`:
+
+    ```yaml
+    sell-multipliers:
+      default: 1.0
+      double: 2.0
+      triple: 3.0
+    ```
+
+    **Command costs**
+
+    Charge players per command use by adding entries to `command-costs`:
+
+    ```yaml
+    command-costs:
+      # Charge $1000 per /example use:
+      #example: 1000
+      # Charge $1500 per /kit tools use:
+      #kit-tools: 1500
+    ```
+
+  </Accordion>
+
+  <Accordion title="Chat (EssentialsXChat)">
+
+    The `chat` section requires the **EssentialsXChat** module. Install `EssentialsXChat.jar` alongside `EssentialsX.jar` for this section to take effect.
+
+    ```yaml
+    chat:
+      # Chat radius in blocks. Players outside this radius won't see the message.
+      # Set to 0 for global chat (default).
+      # Players with 'essentials.chat.spy' see all chat regardless.
+      # Prefix messages with ! to shout (requires 'essentials.chat.shout').
+      radius: 0
+
+      # Chat format. Available placeholders:
+      #   {MESSAGE}       - The chat message
+      #   {USERNAME}      - Sender's username
+      #   {DISPLAYNAME}   - Sender's display name (includes prefix/suffix)
+      #   {NICKNAME}      - Sender's Essentials nickname or username
+      #   {PREFIX}        - Prefix from permissions plugin
+      #   {SUFFIX}        - Suffix from permissions plugin
+      #   {GROUP}         - Primary group from permissions plugin
+      #   {WORLD}         - World alias (see world-aliases below)
+      #   {WORLDNAME}     - Full world name
+      format: '<{DISPLAYNAME}> {MESSAGE}'
+
+      # Optional group-specific formats (group names are case-sensitive):
+      group-formats:
+        #default: '{WORLDNAME} {DISPLAYNAME}&7:&r {MESSAGE}'
+        #admins: '{WORLDNAME} &c[{GROUP}]&r {DISPLAYNAME}&7:&c {MESSAGE}'
+
+      # Replace world names with short aliases in chat:
+      world-aliases:
+        #plots: "&dP&r"
+        #creative: "&eC&r"
+
+      # Put players into shout mode by default.
+      shout-default: false
+
+      # Use Paper's modern chat event system (1.16.5+). Required for
+      # hover/click events. Requires server restart to change.
+      paper-chat-events: true
+    ```
+
+  </Accordion>
+
+  <Accordion title="Spawn (EssentialsXSpawn)">
+
+    The `spawn` section requires the **EssentialsXSpawn** module. It controls where players spawn on first join, on death respawn, and on every join.
+
+    ```yaml
+    # Settings for brand-new players on their first join.
+    newbies:
+      # Announcement message when a new player joins.
+      # Set to '' to disable.
+      announce-format: '&dWelcome {DISPLAYNAME}&d to the server!'
+
+      # Spawnpoint to use for new players.
+      # Use /setspawn <group> to define named spawnpoints.
+      spawnpoint: newbies
+
+      # Kit given to new players on first join (bypasses cost and cooldown).
+      # Set to '' to disable.
+      kit: tools
+
+    # Teleport all joining players to spawn every time they join.
+    # Set to false to disable, or specify a group name (or list of group names)
+    # to only apply to those groups.
+    spawn-on-join: false
+    # Examples:
+    #spawn-on-join: guests
+    #spawn-on-join:
+    #  - guests
+    #  - admin
+
+    # Respawn players at their first home or bed instead of spawn.
+    respawn-at-home: false
+
+    # Respawn at bed specifically (requires respawn-at-home: true).
+    respawn-at-home-bed: true
+
+    # Priority for handling respawn events. Options: none, lowest, low, normal, high, highest.
+    # Use 'high' to let EssentialsX Spawn handle respawning.
+    # Changes require a server restart.
+    respawn-listener-priority: high
+    ```
+
+    **Multiple homes**
+
+    ```yaml
+    sethome-multiple:
+      default: 3    # players with essentials.sethome.multiple
+      vip: 5        # players with essentials.sethome.multiple.vip
+      staff: 10     # players with essentials.sethome.multiple.staff
+
+    # Send players to spawn if they run /home without setting one.
+    spawn-if-no-home: true
+    ```
+
+  </Accordion>
+
+  <Accordion title="Protect (EssentialsXProtect)">
+
+    The `protect` section requires the **EssentialsXProtect** module. It lets you block specific world events, explosions, mob behaviors, and player damage types.
+
+    ```yaml
+    protect:
+      prevent:
+        # Block fire from spreading naturally.
+        fire-spread: true
+        # Block fire started by lava from spreading.
+        lava-fire-spread: true
+        # Block fire started by lightning from spreading.
+        lightning-fire-spread: true
+
+        # Block lava from flowing (false = allow).
+        lava-flow: false
+        # Block water from flowing.
+        water-flow: false
+
+        # Block TNT explosions.
+        tnt-explosion: false
+        # Block creeper explosions.
+        creeper-explosion: false
+        # Block the Ender Dragon from destroying blocks.
+        enderdragon-blockdamage: true
+
+        # Block endermen from picking up blocks.
+        enderman-pickup: false
+        # Block villagers from dying.
+        villager-death: false
+
+      # Disable specific damage types or game behaviors.
+      disable:
+        # Disable PvP. Players with 'essentials.protect.pvp' can still
+        # attack each other but cannot attack players without the node.
+        pvp: false
+
+        # Disable fall damage.
+        fall: false
+        # Disable drowning damage.
+        drown: false
+        # Disable fire/lava damage.
+        firedmg: false
+        lavadmg: false
+
+        # Disable storm, thunder, and lightning weather.
+        weather:
+          storm: false
+          thunder: false
+          lightning: false
+    ```
+
+  </Accordion>
+
+  <Accordion title="Permissions">
+
+    EssentialsX supports two permission modes: Vault-backed permissions plugins (recommended) and a built-in fallback list.
+
+    ```yaml
+    # Use superperms (Vault/LuckPerms) for all permission checks.
+    # Set to false to use the player-commands list below instead.
+    use-bukkit-permissions: true
+    ```
+
+    If `use-bukkit-permissions` is `false`, the `player-commands` list defines which Essentials permissions all players receive by default. This is a fallback for servers without a permissions plugin:
+
+    ```yaml
+    player-commands:
+      - afk
+      - back
+      - balance
+      - balance.others
+      - balancetop
+      - chat.color
+      - home
+      - kit
+      - mail
+      - mail.send
+      - me
+      - msg
+      - nick
+      - pay
+      - spawn
+      - tpa
+      - tpaccept
+      - tpahere
+      - tpdeny
+      - warp
+      - warp.list
+      # ... and many more
+    ```
+
+    For full group and wildcard support, install [LuckPerms](https://luckperms.net) and leave `use-bukkit-permissions: true`.
+
+  </Accordion>
+
+  <Accordion title="Signs">
+
+    Essentials signs let players interact with in-world signs to trigger economy actions, kits, warps, and more. All sign types are disabled by default — uncomment the ones you want to enable:
+
+    ```yaml
+    enabledSigns:
+      #- color        # Use color codes on signs (with correct permissions)
+      #- balance      # Show player balance
+      #- buy          # Purchase items from a sign shop
+      #- sell         # Sell items via a sign
+      #- trade        # Trade items between players
+      #- kit          # Dispense a kit
+      #- warp         # Teleport to a warp
+      #- heal         # Heal the player
+      #- enchant      # Enchant items
+      #- repair       # Repair items
+      #- gamemode     # Switch game mode
+      #- info         # Display info text
+      #- mail         # Send mail
+      #- time         # Change the time
+      #- weather      # Change the weather
+      #- anvil        # Open an anvil
+      #- workbench    # Open a crafting table
+      #- disposal     # Open a trash can
+      #- randomteleport # Random teleport
+      #- spawnmob     # Spawn a mob
+
+    # Maximum sign interactions per player per second (1–20).
+    sign-use-per-second: 4
+    ```
+
+  </Accordion>
+
+  <Accordion title="Miscellaneous">
+
+    **Kits**
+
+    ```yaml
+    # Remove one-time kits from /kit list once a player has used them.
+    skip-used-one-time-kits-from-kit-list: false
+
+    # Automatically equip armor from kits if the player's armor slots are empty.
+    kit-auto-equip: false
+    ```
+
+    **Locale and messages**
+
+    ```yaml
+    # Force a specific server locale (e.g. 'en', 'de', 'fr').
+    # Defaults to the JVM locale if not set.
+    #locale: en
+
+    # Send messages in each player's client language instead of the server locale.
+    per-player-locale: false
+
+    # Primary and secondary accent colors used in Essentials messages.
+    message-colors:
+      primary: '#ffaa00'
+      secondary: '#ff5555'
+    ```
+
+    **Backup**
+
+    ```yaml
+    backup:
+      # How often to run the backup command (minutes).
+      interval: 30
+      # Run even when no players are online.
+      always-run: false
+      # The shell command to execute (example uses rdiff-backup):
+      #command: 'rdiff-backup World1 backups/World1'
+    ```
+
+    **Command cooldowns**
+
+    ```yaml
+    # Per-command cooldowns in seconds. Supports wildcards and regex (prefix with ^).
+    command-cooldowns:
+      #feed: 100
+      #'*': 5
+
+    # Persist cooldowns across server restarts.
+    command-cooldown-persistence: true
+    ```
+
+    **Teleport requests**
+
+    ```yaml
+    # Seconds before a pending /tpa request expires. Set to 0 for no timeout.
+    tpa-accept-cancellation: 120
+
+    # Maximum simultaneous pending teleport requests per player.
+    tpa-max-requests: 5
+    ```
+
+  </Accordion>
+
+</AccordionGroup>

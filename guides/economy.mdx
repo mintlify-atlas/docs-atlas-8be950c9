@@ -1,0 +1,255 @@
+---
+title: "Economy"
+description: "Set up a server economy with balances, player payments, admin commands, shop signs, and item sell prices."
+---
+
+EssentialsX provides a built-in economy system that tracks player balances and exposes a [Vault](https://www.spigotmc.org/resources/vault.34315/) API for other plugins to use. To enable economy features you need:
+
+- **Vault** installed on your server
+- A compatible permissions plugin such as [LuckPerms](https://luckperms.net/)
+
+<Note>
+EssentialsX does not require a separate economy plugin when Vault is present. EssentialsX itself acts as the economy provider through Vault.
+</Note>
+
+---
+
+## Player commands
+
+### `/balance [player]`
+
+Shows the current balance of yourself or, with `essentials.balance.others`, of another player.
+
+**Aliases:** `/bal`, `/money`
+
+```bash
+/balance
+/balance Steve
+```
+
+### `/pay <player> <amount>`
+
+Transfers money from your balance to another player. The minimum transfer amount is controlled by `minimum-pay-amount` in `config.yml` (default: `0.001`).
+
+**Aliases:** `/epay`
+
+```bash
+/pay Steve 500
+```
+
+### `/balancetop [page]`
+
+Lists the players with the highest balances. Pages through the list when a page number is supplied.
+
+**Aliases:** `/baltop`
+
+```bash
+/balancetop
+/balancetop 2
+```
+
+### `/sell <item|hand|inventory|blocks> [amount]`
+
+Sells items for their configured worth. Use `hand` to sell what you're holding, `inventory` to sell all matching items in your inventory, or `blocks` to sell only block-form items.
+
+```bash
+/sell hand
+/sell inventory
+/sell diamond 32
+```
+
+---
+
+## Admin commands
+
+Use `/eco` to modify player balances directly. Requires the `essentials.eco` permission.
+
+```bash
+# Give a player money
+/eco give Steve 1000
+
+# Deduct money from a player
+/eco take Steve 250
+
+# Set a player's balance to an exact amount
+/eco set Steve 5000
+
+# Reset a player's balance to the starting balance
+/eco reset Steve
+```
+
+<Warning>
+`/eco take` and `/eco reset` are irreversible. Confirm the target player name before running these commands.
+</Warning>
+
+---
+
+## Item pricing with `/worth` and `/setworth`
+
+EssentialsX determines sell prices from `worth.yml`. Items not listed in that file cannot be sold.
+
+**View the sell value of an item:**
+
+```bash
+/worth
+/worth diamond
+/worth hand
+```
+
+**Set the sell value of an item (requires `essentials.setworth`):**
+
+```bash
+/setworth diamond 200
+/setworth iron_ingot 22
+```
+
+Prices set with `/setworth` are written directly to `worth.yml` and persist across restarts.
+
+A sample `worth.yml` showing the format:
+
+```yaml
+worth:
+  log: 2.0
+  diamond: 200.0
+  iron_ingot: 22.0
+  coal: 15.0
+  gold_ingot: 105.0
+  # Use data values to target specific variants
+  wool:
+    '0': 20
+  # Wildcard sells all saplings at 2.5, except variant 0 at 2.0
+  sapling:
+    '0': 2.0
+    '*': 2.5
+```
+
+---
+
+## Shop signs
+
+EssentialsX sign shops let players buy and sell items directly from signs placed in the world. You must enable sign types in `config.yml` before they can be created.
+
+```yaml
+# config.yml
+enabledSigns:
+  - buy
+  - sell
+```
+
+### `[Buy]` signs
+
+Players pay to receive items. Place a sign with:
+
+```
+[Buy]
+<quantity>
+<item name>
+<price>
+```
+
+**Example:**
+
+```
+[Buy]
+16
+diamond
+3200
+```
+
+### `[Sell]` signs
+
+Players sell items to receive money. Place a sign with:
+
+```
+[Sell]
+<quantity>
+<item name>
+<price>
+```
+
+**Example:**
+
+```
+[Sell]
+64
+coal
+960
+```
+
+<Tip>
+You can combine `[Buy]` and `[Trade]` signs to build automated shop areas without any additional shop plugins.
+</Tip>
+
+---
+
+## Economy configuration
+
+Key settings in `config.yml`:
+
+```yaml
+# Starting balance for new players
+starting-balance: 0
+
+# Currency symbol displayed in balance messages
+currency-symbol: '$'
+
+# Display the symbol after the amount (e.g., "100 $" instead of "$100")
+currency-symbol-suffix: false
+
+# Maximum balance a player can hold
+max-money: 10000000000000
+
+# Minimum balance (negative values enable loans)
+# Players need essentials.eco.loan to go below zero
+min-money: -10000
+
+# Minimum amount accepted by /pay
+minimum-pay-amount: 0.001
+
+# Log all buy/sell/trade sign and /sell interactions
+economy-log-enabled: false
+
+# Sell price multipliers per permission rank
+sell-multipliers:
+  default: 1.0
+  double: 2.0
+  triple: 3.0
+```
+
+To grant a player the `double` sell multiplier, give them `essentials.sell.multiplier.double`.
+
+---
+
+## Permissions
+
+| Permission | Description |
+|---|---|
+| `essentials.balance` | View your own balance |
+| `essentials.balance.others` | View another player's balance |
+| `essentials.balancetop` | View the balance top list |
+| `essentials.balancetop.force` | Force a refresh of the balance top list |
+| `essentials.balancetop.exclude` | Exclude yourself from the balance top list |
+| `essentials.pay` | Send payments to other players |
+| `essentials.pay.offline` | Pay offline players |
+| `essentials.pay.multiple` | Pay multiple players at once |
+| `essentials.paytoggle` | Toggle accepting payments |
+| `essentials.payconfirmtoggle` | Toggle payment confirmation prompts |
+| `essentials.eco` | Run `/eco give/take/set/reset` |
+| `essentials.eco.loan` | Allow a negative balance |
+| `essentials.sell` | Access to the `/sell` command |
+| `essentials.sell.hand` | Sell the item currently held |
+| `essentials.sell.bulk` | Sell items in bulk quantities |
+| `essentials.worth` | Check item sell value with `/worth` |
+| `essentials.setworth` | Set item sell value with `/setworth` |
+| `essentials.signs.use.buy` | Use `[Buy]` signs |
+| `essentials.signs.use.sell` | Use `[Sell]` signs |
+| `essentials.signs.create.buy` | Create `[Buy]` signs |
+| `essentials.signs.create.sell` | Create `[Sell]` signs |
+| `essentials.signs.break.buy` | Break `[Buy]` signs |
+| `essentials.signs.break.sell` | Break `[Sell]` signs |
+
+---
+
+## Economy API
+
+EssentialsX exposes an economy API through Vault. Other plugins can query and modify balances using the standard Vault `Economy` interface. See [Economy API](/api/economy) for integration details.

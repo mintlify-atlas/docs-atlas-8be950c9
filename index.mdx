@@ -1,97 +1,86 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "EssentialsX Documentation"
+description: "The modern Essentials suite for Spigot and Paper — 100+ commands, economy, chat formatting, Discord integration, and more."
 ---
 
-## Setting up
+EssentialsX is the most widely used Minecraft server plugin suite, providing everything from basic utility commands to a full economy system, chat formatting, Discord bridging, and spawn management. It runs on CraftBukkit, Spigot, and Paper for Minecraft 1.8.8 through the latest versions.
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Get EssentialsX running on your server in minutes. Download the jars and drop them in your plugins folder.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Configuration" icon="gear" href="/configuration">
+    Customize EssentialsX to fit your server — economy settings, teleport rules, nicknames, and more.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Permissions" icon="shield" href="/guides/permissions">
+    Control what players and groups can do with hundreds of granular permission nodes.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Commands Reference" icon="terminal" href="/guides/commands-reference">
+    Browse all 100+ commands with usage, aliases, and required permissions.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Modules
 
-Everything you need to create world-class documentation.
+EssentialsX is modular — install only what you need alongside the core plugin.
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
+<CardGroup cols={3}>
+  <Card title="EssentialsX Chat" icon="comment" href="/modules/chat">
+    Custom chat formatting with permission-based prefixes and suffixes.
   </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
+  <Card title="EssentialsX Discord" icon="discord" href="/modules/discord">
+    Two-way bridge between Minecraft and Discord with slash commands.
   </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
+  <Card title="EssentialsX Spawn" icon="flag" href="/modules/spawn">
+    Fine-grained spawn and respawn control for players and groups.
   </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
+  <Card title="EssentialsX Protect" icon="lock" href="/modules/protect">
+    Block physics protection and server environment safeguards.
   </Card>
-</Columns>
+  <Card title="EssentialsX GeoIP" icon="earth-americas" href="/modules/geoip">
+    Look up player location information using IP geolocation.
+  </Card>
+  <Card title="EssentialsX DiscordLink" icon="link" href="/modules/discordlink">
+    Link Minecraft accounts to Discord for role-based permissions.
+  </Card>
+</CardGroup>
 
-## Need inspiration?
+## Get started
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<Steps>
+  <Step title="Download EssentialsX">
+    Grab the latest release from [essentialsx.net/downloads.html](https://essentialsx.net/downloads.html). Download the core `EssentialsX.jar` and any module JARs you need.
+  </Step>
+  <Step title="Install on your server">
+    Place all downloaded JARs into your server's `plugins/` folder. For economy features, also install [Vault](https://dev.bukkit.org/projects/vault) and a permissions plugin such as [LuckPerms](https://luckperms.net).
+  </Step>
+  <Step title="Start your server">
+    Start (or restart) your server. EssentialsX will generate its configuration files in `plugins/Essentials/`. Stop the server to edit `config.yml` before going live.
+  </Step>
+  <Step title="Configure and assign permissions">
+    Edit `plugins/Essentials/config.yml` for global settings, then use your permissions plugin to grant `essentials.*` to ops or specific nodes to player groups. Run `/ess reload` to apply config changes without a restart.
+  </Step>
+</Steps>
+
+## Developer API
+
+Building a plugin that integrates with EssentialsX? The API gives you access to economy operations, player data, events, and the Discord bridge.
+
+<CardGroup cols={2}>
+  <Card title="API Overview" icon="code" href="/api/overview">
+    Learn how to add EssentialsX as a dependency and access its services.
+  </Card>
+  <Card title="Economy API" icon="coins" href="/api/economy">
+    Read and modify player balances using the Economy static utility class.
+  </Card>
+  <Card title="Events" icon="bolt" href="/api/events">
+    Listen to EssentialsX events for balance changes, teleports, nicks, and more.
+  </Card>
+  <Card title="Discord API" icon="discord" href="/api/discord-service">
+    Send messages to Discord channels and register custom slash commands.
+  </Card>
+</CardGroup>
+
+<Note>
+  EssentialsX requires **Java 8 or higher** and **CraftBukkit, Spigot, or Paper**. Economy features require [Vault](https://dev.bukkit.org/projects/vault). We recommend [LuckPerms](https://luckperms.net) for permissions management.
+</Note>

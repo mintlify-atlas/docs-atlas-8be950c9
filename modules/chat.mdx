@@ -1,0 +1,158 @@
+---
+title: "EssentialsX Chat"
+description: "Format chat messages with prefixes, suffixes, and local chat radius using EssentialsX Chat."
+---
+
+EssentialsX Chat controls how chat messages appear in game. It lets you define a custom format string that pulls in player prefixes, suffixes, group names, and world names from your permissions plugin, and optionally restricts chat to a local radius so only nearby players can read it.
+
+<Note>
+  EssentialsX Chat requires [Vault](https://www.spigotmc.org/resources/vault.34315/) to display prefixes and suffixes from your permissions plugin (e.g. LuckPerms). Without Vault, `{PREFIX}` and `{SUFFIX}` placeholders will be empty.
+</Note>
+
+## Installation
+
+Drop `EssentialsXChat.jar` into your `plugins/` folder alongside `EssentialsX.jar` and restart your server. The chat configuration lives in the `chat:` block of `plugins/Essentials/config.yml` — no separate config file is generated for this module.
+
+## Chat Format
+
+The `format` key controls the template used for every chat message. You set it under the `chat:` section of `plugins/Essentials/config.yml`:
+
+```yaml
+chat:
+  format: '<{DISPLAYNAME}> {MESSAGE}'
+```
+
+### Available placeholders
+
+| Placeholder | Description |
+|---|---|
+| `{MESSAGE}` | The content of the chat message |
+| `{USERNAME}` | The sender's Minecraft username |
+| `{DISPLAYNAME}` | The sender's display name (includes prefix and suffix by default) |
+| `{NICKNAME}` | The sender's Essentials nickname, or username if none is set |
+| `{PREFIX}` | The sender's prefix from your permissions plugin |
+| `{SUFFIX}` | The sender's suffix from your permissions plugin |
+| `{GROUP}` | The sender's primary group name from your permissions plugin |
+| `{WORLD}` | The world alias for the sender's current world |
+| `{WORLDNAME}` | The full world name |
+| `{SHORTWORLDNAME}` | The first character of the world name |
+| `{TEAMNAME}` | The sender's scoreboard team name |
+| `{TEAMPREFIX}` | The sender's scoreboard team prefix |
+| `{TEAMSUFFIX}` | The sender's scoreboard team suffix |
+
+<Warning>
+  `{DISPLAYNAME}` already includes `{PREFIX}` and `{SUFFIX}`. Using all three together in the same format string will duplicate prefixes and suffixes in chat.
+</Warning>
+
+### Common format patterns
+
+```yaml
+chat:
+  # Simple: display name followed by message
+  format: '<{DISPLAYNAME}> {MESSAGE}'
+
+  # Group tag with colored display name
+  format: '&7[{GROUP}]&r {DISPLAYNAME}&7:&r {MESSAGE}'
+
+  # Raw prefix, nickname, and suffix
+  format: '&7{PREFIX}&r {NICKNAME}&r &7{SUFFIX}&r: {MESSAGE}'
+```
+
+### Per-group formats
+
+You can override the format for specific permission groups under `group-formats:`. Group names are case-sensitive and must match the name in your permissions plugin exactly. If LuckPerms has a display name (alias) configured for a group, use the alias rather than the internal name.
+
+```yaml
+chat:
+  group-formats:
+    default: '{WORLDNAME} {DISPLAYNAME}&7:&r {MESSAGE}'
+    admins: '{WORLDNAME} &c[{GROUP}]&r {DISPLAYNAME}&7:&c {MESSAGE}'
+```
+
+### Per-type formats
+
+You can also define different formats for normal chat, shout, and question message types:
+
+```yaml
+chat:
+  format:
+    normal: '{WORLDNAME} {DISPLAYNAME}&7:&r {MESSAGE}'
+    question: '{WORLDNAME} &4{DISPLAYNAME}&7:&r {MESSAGE}'
+    shout: '{WORLDNAME} &c[{GROUP}]&r &4{DISPLAYNAME}&7:&c {MESSAGE}'
+```
+
+## Local Chat Radius
+
+Setting `radius` to a value greater than `0` makes chat local — only players within that many blocks will see the message. A radius of `0` (the default) means chat is global.
+
+```yaml
+chat:
+  radius: 100
+```
+
+When local chat is active, players can still reach everyone by prefixing their message with special characters:
+
+- `!` — broadcasts a shout to all players (requires `essentials.chat.shout`)
+- `?` — sends a question to all players (requires `essentials.chat.question`)
+
+Players with `essentials.chat.spy` see all local messages regardless of distance.
+
+## Chat Type Commands
+
+| Command | Description |
+|---|---|
+| `/toggleshout` | Toggle whether you speak in shout mode by default |
+
+```yaml
+chat:
+  # Put all players into shout mode by default
+  shout-default: false
+
+  # Save shout mode state across restarts
+  persist-shout: false
+
+  # Enable or disable the question chat type
+  question-enabled: true
+```
+
+## World Aliases
+
+Replace long world names with short labels in your chat format using `{WORLD}`:
+
+```yaml
+chat:
+  world-aliases:
+    plots: "&dP&r"
+    creative: "&eC&r"
+```
+
+## Permissions
+
+<AccordionGroup>
+  <Accordion title="Chat formatting">
+    | Permission | Description |
+    |---|---|
+    | `essentials.chat.color` | Send color codes in chat |
+    | `essentials.chat.format` | Send text formatting codes (bold, italic, etc.) |
+    | `essentials.chat.magic` | Send the obfuscated ("magic") formatting code |
+    | `essentials.chat.rgb` | Send RGB hex color codes in chat |
+    | `essentials.chat.url` | Send clickable URLs in chat |
+  </Accordion>
+  <Accordion title="Chat types">
+    | Permission | Description |
+    |---|---|
+    | `essentials.chat.local` | Send local chat messages (granted by default) |
+    | `essentials.chat.shout` | Prefix messages with `!` to shout globally |
+    | `essentials.chat.question` | Prefix messages with `?` to ask a global question |
+    | `essentials.chat.spy` | See all local chat regardless of radius |
+    | `essentials.chat.receive.local` | Receive local chat messages (granted by default) |
+    | `essentials.chat.receive.shout` | Receive shout messages (granted by default) |
+    | `essentials.chat.receive.question` | Receive question messages (granted by default) |
+  </Accordion>
+  <Accordion title="Shout command">
+    | Permission | Description |
+    |---|---|
+    | `essentials.toggleshout` | Use `/toggleshout` |
+    | `essentials.toggleshout.others` | Use `/toggleshout` on other players |
+  </Accordion>
+</AccordionGroup>

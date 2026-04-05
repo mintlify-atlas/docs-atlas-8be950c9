@@ -1,0 +1,129 @@
+---
+title: "Dependency Setup"
+description: "Add EssentialsX as a compile-only dependency in Maven or Gradle and declare it in your plugin.yml."
+---
+
+This page walks you through adding EssentialsX to your plugin's build system and
+declaring the dependency so Bukkit loads it before your plugin.
+
+<Note>
+  Always add EssentialsX with `provided` scope (Maven) or `compileOnly`
+  (Gradle). EssentialsX is loaded by the server at runtime — bundling it into
+  your jar will cause class conflicts and is unnecessary.
+</Note>
+
+<Steps>
+
+### Add the EssentialsX Maven repository
+
+EssentialsX is not published to Maven Central. You must add the EssentialsX
+repository to your build file before declaring the dependency.
+
+<CodeGroup>
+
+```xml Maven (pom.xml)
+<repositories>
+  <repository>
+    <id>essentialsx-releases</id>
+    <url>https://repo.essentialsx.net/releases/</url>
+  </repository>
+</repositories>
+```
+
+```groovy Gradle (Groovy DSL)
+repositories {
+    maven { url 'https://repo.essentialsx.net/releases/' }
+}
+```
+
+```kotlin Gradle (Kotlin DSL)
+repositories {
+    maven("https://repo.essentialsx.net/releases/")
+}
+```
+
+</CodeGroup>
+
+<Tip>
+  If you want to build against a development snapshot instead of a release, use
+  the snapshots repository URL: `https://repo.essentialsx.net/snapshots/`
+</Tip>
+
+### Declare the dependency
+
+Add EssentialsX to your dependencies using `provided` or `compileOnly` scope.
+
+<CodeGroup>
+
+```xml Maven (pom.xml)
+<dependencies>
+  <dependency>
+    <groupId>net.essentialsx</groupId>
+    <artifactId>EssentialsX</artifactId>
+    <version>2.21.2</version>
+    <scope>provided</scope>
+  </dependency>
+</dependencies>
+```
+
+```groovy Gradle (Groovy DSL)
+dependencies {
+    compileOnly 'net.essentialsx:EssentialsX:2.21.2'
+}
+```
+
+```kotlin Gradle (Kotlin DSL)
+dependencies {
+    compileOnly("net.essentialsx:EssentialsX:2.21.2")
+}
+```
+
+</CodeGroup>
+
+To target a snapshot build, replace the version with `2.22.0-SNAPSHOT` and use
+the snapshots repository URL from the step above.
+
+<Warning>
+  Versions before 2.19.0 used the group ID `net.ess3` instead of
+  `net.essentialsx`. If you need to compile against an older release (e.g.
+  `2.18.2`), use `net.ess3:EssentialsX:2.18.2` with the releases repository.
+</Warning>
+
+### Declare the dependency in `plugin.yml`
+
+Tell Bukkit to load EssentialsX before your plugin. Use `depend` if your plugin
+requires EssentialsX to function, or `softdepend` if EssentialsX integration is
+optional.
+
+```yaml plugin.yml
+# Hard dependency — your plugin will not load if EssentialsX is absent
+depend: [Essentials]
+
+# Soft dependency — your plugin loads even if EssentialsX is not installed
+softdepend: [Essentials]
+```
+
+### Check that EssentialsX is available at runtime
+
+When using a soft dependency, always verify that EssentialsX is present and
+enabled before attempting to call the API. Do this check in your `onEnable()`
+method or in any code path that accesses EssentialsX.
+
+```java
+import net.ess3.api.IEssentials;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
+
+Plugin essPlugin = Bukkit.getPluginManager().getPlugin("Essentials");
+if (essPlugin == null || !essPlugin.isEnabled()) {
+    // EssentialsX is not available — disable integration or skip
+    return;
+}
+
+IEssentials ess = (IEssentials) essPlugin;
+```
+
+Once you have the `IEssentials` instance, you can access the full API. See the
+[API Overview](/api/overview) for a map of available interfaces and services.
+
+</Steps>

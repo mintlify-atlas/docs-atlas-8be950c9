@@ -1,0 +1,338 @@
+---
+title: "Discord Slash Commands"
+description: "Register custom Discord slash commands that let users interact with your Minecraft server directly from Discord."
+---
+
+EssentialsX Discord lets you register custom Discord slash commands that interact with your Minecraft server. Commands appear in Discord's autocomplete UI and run against your server when invoked. Responses can be public or visible only to the user who ran the command.
+
+<Info>
+  EssentialsX Discord must be installed and connected to your bot before slash commands will appear in Discord. Slash commands registered through this API are included in the same initial registration batch as EssentialsX's built-in commands when your server starts.
+</Info>
+
+---
+
+## How to register a slash command
+
+<Steps>
+  <Step title="Create your command class">
+    Create a class that implements `InteractionCommand`. You must implement six methods: `getName`, `getDescription`, `getArguments`, `isEphemeral`, `isDisabled`, and `onCommand`.
+
+    Here is a complete example that looks up a player's economy balance:
+
+    ```java
+    public class BalanceSlashCommand implements InteractionCommand {
+        private final MyEconomyPlugin plugin = ...;
+
+        @Override
+        public void onCommand(InteractionEvent event) {
+            // The name of the argument here has to be the same you used in getArguments()
+            final String playerName = event.getStringArgument("player");
+            final Player player = Bukkit.getPlayerExact(playerName);
+            if (player == null) {
+                event.reply("A player by that name could not be found!");
+                return;
+            }
+
+            final int balance = plugin.getBalance(player);
+
+            // It is important you reply to the InteractionEvent at least once as Discord
+            // will show your bot is 'thinking' until you do so.
+            event.reply("The balance of " + player.getName() + " is $" + balance);
+        }
+
+        @Override
+        public String getName() {
+            // This should return the name of the command as you want it to appear in Discord.
+            // This method should never return different values.
+            return "balance";
+        }
+
+        @Override
+        public String getDescription() {
+            // This should return the description of the command as you want it
+            // to appear in Discord.
+            // This method should never return different values.
+            return "Checks the balance of the given player";
+        }
+
+        @Override
+        public List<InteractionCommandArgument> getArguments() {
+            // Should return a list of arguments that will be used in your command.
+            // If you don't want any arguments, you can return null here.
+            return List.of(
+                    new InteractionCommandArgument(
+                            // This should be the name of the command argument.
+                            // Keep it a single word, all lower case.
+                            "player",
+                            // This is the description of the argument.
+                            "The player to check the balance of",
+                            // This is the type of the argument you'd like to receive from
+                            // Discord.
+                            InteractionCommandArgumentType.STRING,
+                            // Should be set to true if the argument is required to send
+                            // the command from Discord.
+                            true));
+        }
+
+        @Override
+        public boolean isEphemeral() {
+            // Whether the command and response should be hidden to other users on Discord.
+            // Return true here in order to hide command/responses from other Discord users.
+            return false;
+        }
+
+        @Override
+        public boolean isDisabled() {
+            // Whether the command should be prevented from being registered/executed.
+            // Return true here in order to mark the command as disabled.
+            return false;
+        }
+    }
+    ```
+  </Step>
+
+  <Step title="Register the command in onEnable">
+    Register your command through `InteractionController` in your plugin's `onEnable` method. Commands registered here are bundled into the initial registration batch sent to Discord when the server starts.
+
+    ```java
+    import net.essentialsx.api.v2.services.discord.DiscordService;
+
+    public class MyEconomyPlugin extends JavaPlugin {
+        @Override
+        public void onEnable() {
+            final DiscordService api = Bukkit.getServicesManager().load(DiscordService.class);
+            if (api == null) {
+                getLogger().warning("EssentialsX Discord not found — slash commands will not be registered.");
+                return;
+            }
+            api.getInteractionController().registerCommand(new BalanceSlashCommand());
+        }
+    }
+    ```
+
+    <Warning>
+      Register commands in `onEnable`, not lazily at runtime. Commands registered after the initial batch may take up to an hour to appear in Discord due to Discord's own propagation delay for global slash commands.
+    </Warning>
+  </Step>
+</Steps>
+
+---
+
+## InteractionCommand
+
+`InteractionCommand` is the interface your command class must implement. All methods are called once during registration except `onCommand`, which is called each time a user invokes the command in Discord.
+
+<ParamField path="getName()" type="String" required>
+  The command name as it appears in Discord (e.g. `"balance"`). Must be lowercase, contain no spaces, and return a consistent value — never change it at runtime.
+</ParamField>
+
+<ParamField path="getDescription()" type="String" required>
+  A brief description shown in Discord's command picker. Return a consistent value.
+</ParamField>
+
+<ParamField path="getArguments()" type="List&lt;InteractionCommandArgument&gt;" required>
+  The arguments accepted by this command. Return `null` or an empty list if the command takes no arguments. Arguments can only be declared here — you cannot add arguments after the command is registered.
+</ParamField>
+
+<ParamField path="isEphemeral()" type="boolean" required>
+  When `true`, the command invocation and its replies are only visible to the user who ran it. When `false`, the command and responses appear publicly in the channel.
+</ParamField>
+
+<ParamField path="isDisabled()" type="boolean" required>
+  When `true`, the command is not registered with Discord and cannot be invoked. Use this to let server admins disable commands via your plugin's config.
+</ParamField>
+
+<ParamField path="onCommand(InteractionEvent event)" type="void" required>
+  Called when a Discord user invokes this command. You **must** call `event.reply(...)` at least once; otherwise Discord will show the bot as "thinking" indefinitely.
+</ParamField>
+
+---
+
+## InteractionEvent
+
+`InteractionEvent` is passed to `onCommand` and provides access to argument values, the invoking member, and reply methods.
+
+### Replying
+
+<ParamField path="reply(String message)" type="void">
+  Appends the given text to the command's response. Call this at least once for every command invocation.
+</ParamField>
+
+<ParamField path="replyTl(String tlKey, Object... args)" type="void">
+  Appends a localised message looked up by translation key. Use this when your response text comes from EssentialsX's translation system.
+</ParamField>
+
+### Reading arguments
+
+Each method corresponds to an `InteractionCommandArgumentType`. Pass the argument `name` you declared in `getArguments()`. Returns `null` if no argument with that name is present.
+
+<ParamField path="getStringArgument(String key)" type="String">
+  Returns the value of a `STRING` argument.
+</ParamField>
+
+<ParamField path="getIntegerArgument(String key)" type="Long">
+  Returns the value of an `INTEGER` argument as a `Long`.
+</ParamField>
+
+<ParamField path="getBooleanArgument(String key)" type="Boolean">
+  Returns the value of a `BOOLEAN` argument.
+</ParamField>
+
+<ParamField path="getUserArgument(String key)" type="InteractionMember">
+  Returns the Discord member selected for a `USER` argument.
+</ParamField>
+
+<ParamField path="getChannelArgument(String key)" type="InteractionChannel">
+  Returns the Discord channel selected for a `CHANNEL` argument.
+</ParamField>
+
+<ParamField path="getRoleArgument(String key)" type="InteractionRole">
+  Returns the Discord role selected for a `ROLE` argument.
+</ParamField>
+
+### Other methods
+
+<ParamField path="getMember()" type="InteractionMember">
+  The Discord guild member who invoked the command.
+</ParamField>
+
+<ParamField path="getChannelId()" type="String">
+  The Discord channel ID where the interaction occurred.
+</ParamField>
+
+---
+
+## InteractionCommandArgument
+
+Declare each argument your command accepts by constructing an `InteractionCommandArgument`.
+
+```java
+new InteractionCommandArgument(name, description, type, required)
+```
+
+<ParamField path="name" type="String" required>
+  The argument name shown in Discord's command UI. Use a single lowercase word (e.g. `"player"`, `"amount"`). This is also the key you pass to `getStringArgument` and the other accessor methods on `InteractionEvent`.
+</ParamField>
+
+<ParamField path="description" type="String" required>
+  A brief description of the argument shown in Discord's command picker.
+</ParamField>
+
+<ParamField path="type" type="InteractionCommandArgumentType" required>
+  The Discord argument type. See the table below.
+</ParamField>
+
+<ParamField path="required" type="boolean" required>
+  When `true`, Discord requires the user to provide this argument before they can submit the command.
+</ParamField>
+
+### InteractionCommandArgumentType values
+
+| Value | Discord type | Accessor method |
+|---|---|---|
+| `STRING` | Text input | `getStringArgument(key)` |
+| `INTEGER` | Whole number | `getIntegerArgument(key)` |
+| `BOOLEAN` | True/false toggle | `getBooleanArgument(key)` |
+| `USER` | Guild member picker | `getUserArgument(key)` |
+| `CHANNEL` | Channel picker | `getChannelArgument(key)` |
+| `ROLE` | Role picker | `getRoleArgument(key)` |
+
+---
+
+## InteractionController
+
+`InteractionController` is the entry point for managing registered slash commands. Retrieve it from `DiscordService`:
+
+```java
+InteractionController controller = api.getInteractionController();
+```
+
+<ParamField path="registerCommand(InteractionCommand command)" type="void">
+  Registers the given command with Discord. Throws `InteractionException` if a command with the same name is already registered, or if the same command instance has already been registered.
+</ParamField>
+
+<ParamField path="getCommand(String name)" type="InteractionCommand">
+  Returns the registered command with the given name, or `null` if none exists.
+</ParamField>
+
+---
+
+## Extended example: multiple argument types
+
+This example shows a command that accepts a player name (STRING) and a boolean flag, demonstrating how to handle multiple arguments and optional values.
+
+```java
+public class TeleportRequestCommand implements InteractionCommand {
+
+    @Override
+    public void onCommand(InteractionEvent event) {
+        final String playerName = event.getStringArgument("player");
+        final Boolean silent = event.getBooleanArgument("silent");
+
+        final Player target = Bukkit.getPlayerExact(playerName);
+        if (target == null) {
+            event.reply("No online player found with that name.");
+            return;
+        }
+
+        // silent defaults to false if not provided (optional argument)
+        boolean isSilent = silent != null && silent;
+
+        if (!isSilent) {
+            target.sendMessage("A Discord user has requested your location.");
+        }
+
+        event.reply("Player **" + target.getName() + "** is at "
+                + target.getLocation().getBlockX() + ", "
+                + target.getLocation().getBlockY() + ", "
+                + target.getLocation().getBlockZ()
+                + " in `" + target.getWorld().getName() + "`.");
+    }
+
+    @Override
+    public String getName() {
+        return "locate";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Shows the current location of an online player";
+    }
+
+    @Override
+    public List<InteractionCommandArgument> getArguments() {
+        return List.of(
+            new InteractionCommandArgument(
+                "player",
+                "The name of the online player to locate",
+                InteractionCommandArgumentType.STRING,
+                true   // required
+            ),
+            new InteractionCommandArgument(
+                "silent",
+                "If true, the player is not notified about the lookup",
+                InteractionCommandArgumentType.BOOLEAN,
+                false  // optional
+            )
+        );
+    }
+
+    @Override
+    public boolean isEphemeral() {
+        // Hide location info from other Discord users
+        return true;
+    }
+
+    @Override
+    public boolean isDisabled() {
+        return false;
+    }
+}
+```
+
+---
+
+## Further reading
+
+- [Discord Service](/api/discord-service) — Send messages to Discord channels from your plugin.
+- [EssentialsX Discord Javadocs](https://jd-v2.essentialsx.net/EssentialsDiscord) — Full API reference.

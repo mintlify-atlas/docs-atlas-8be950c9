@@ -1,0 +1,236 @@
+---
+title: "EssentialsX Discord"
+description: "Bridge your Minecraft server and Discord with chat relay, event notifications, console output, and Discord slash commands."
+---
+
+EssentialsX Discord is a lightweight bridge between your Minecraft server and a Discord server. It relays chat and events in both directions, streams your server console to a Discord channel, and exposes slash commands that let Discord users interact with Minecraft without ever opening the game.
+
+**What it does:**
+- Relays Minecraft chat to Discord and Discord messages back to Minecraft
+- Sends join, leave, death, AFK, advancement, kick, and mute events to Discord
+- Streams your server console to a dedicated Discord channel
+- Provides `/execute`, `/msg`, and `/list` Discord slash commands
+
+## Initial Setup
+
+<Steps>
+  <Step title="Create a Discord application">
+    Go to [discord.com/developers/applications](https://discord.com/developers/applications) and click **New Application**. Give it a name and click **Create**.
+
+    On the application overview, copy your **Application ID** and save it — you will need it when adding the bot to your server.
+  </Step>
+  <Step title="Add a bot user">
+    In the left sidebar, click **Bot**, then click **Add Bot** and confirm with **Yes, do it!**.
+
+    On the bot page:
+    - Uncheck **Public Bot** so others cannot add your bot to their servers.
+    - Enable **Presence Intent**, **Server Members Intent**, and **Message Content Intent**.
+    - Click **Save Changes**.
+
+    Then click **Reset Token**, confirm, and copy the token. Store it securely — you will paste it into the config later.
+  </Step>
+  <Step title="Add the bot to your Discord server">
+    Go to [essentialsx.net/discord.html](https://essentialsx.net/discord.html), paste your **Application ID** into the text box, and click **Authorize**.
+
+    <Note>
+      Use the EssentialsX invite link rather than generating your own. EssentialsX Discord requires additional OAuth2 scopes beyond the standard `bot` scope, and the EssentialsX page pre-configures them correctly.
+    </Note>
+
+    Select your server from the dropdown and click **Authorize**.
+  </Step>
+  <Step title="Enable Developer Mode in Discord">
+    Open Discord settings, go to **Advanced**, and turn on **Developer Mode**. This lets you right-click servers and channels to copy their IDs.
+  </Step>
+  <Step title="Copy your server and channel IDs">
+    Right-click your Discord server icon and click **Copy ID** to get the **guild ID**.
+
+    Right-click the channel you want to use as your primary channel (where join/leave/chat/death messages go) and click **Copy ID**.
+
+    Save both IDs for the next step.
+  </Step>
+  <Step title="Generate the default config">
+    Add `EssentialsXDiscord.jar` to your `plugins/` folder, start your server, then stop it once it finishes loading. This writes the default `plugins/EssentialsDiscord/config.yml`.
+  </Step>
+  <Step title="Edit the config">
+    Open `plugins/EssentialsDiscord/config.yml` and fill in the three values you collected:
+
+    ```yaml
+    token: "YOUR-BOT-TOKEN-HERE"
+    guild: 123456789012345678
+    channels:
+      primary: 123456789012345678
+      staff: 000000000000000000
+    ```
+
+    Replace the `primary` channel value with your channel ID. You can leave `staff` as zeros unless you want mute/kick messages in a separate channel.
+  </Step>
+  <Step title="Start your server">
+    Start the server. Chat and event messages should now appear in the Discord channel you configured as `primary`.
+  </Step>
+</Steps>
+
+## Console Relay
+
+The console relay streams every log line from your server console to a Discord channel in real time.
+
+<Steps>
+  <Step title="Copy the console channel ID">
+    Right-click the channel you want to use for console output in Discord and click **Copy ID**.
+  </Step>
+  <Step title="Set the channel in config">
+    Open `plugins/EssentialsDiscord/config.yml` and paste the ID into the `console.channel` field:
+
+    ```yaml
+    console:
+      channel: 123456789012345678
+      format: "[{timestamp} {level}] {message}"
+      webhook-name: "EssentialsX Console Relay"
+      log-level: info
+      command-relay: false
+    ```
+  </Step>
+  <Step title="Reload">
+    Run `ess reload` from your console (or restart). Console output will start appearing in the channel immediately.
+  </Step>
+</Steps>
+
+<Warning>
+  Setting `command-relay: true` lets **anyone** who can send messages in the console channel execute commands as the server console. Use the `/execute` Discord slash command instead — it supports role-based access control.
+</Warning>
+
+The `log-level` key controls the minimum severity of messages sent to Discord. Available levels from highest to lowest: `fatal`, `error`, `warn`, `info`, `debug`, `trace`. Setting it to `info` forwards `info`, `warn`, `error`, and `fatal` messages.
+
+## Configuring Message Types and Channels
+
+EssentialsX Discord routes different event types to different Discord channels using the `message-types` section of the config. Each value is a key from the `channels` section (or the literal string `none` to disable that message type).
+
+```yaml
+channels:
+  primary: 123456789012345678
+  staff: 987654321098765432
+  chat-only: 111222333444555666
+
+message-types:
+  join: primary
+  first-join: primary
+  leave: primary
+  chat: chat-only       # route chat to its own channel
+  death: primary
+  afk: primary
+  advancement: primary
+  action: primary
+  server-start: primary
+  server-stop: primary
+  kick: staff
+  mute: staff
+  private-chat: none    # disabled by default
+  local: none
+  question: primary
+  shout: primary
+```
+
+If a channel ID is invalid, the plugin falls back to `primary`. If `primary` is also invalid, it uses the server's default channel.
+
+## Receiving Discord Messages in Minecraft
+
+Players can see messages from a Discord channel in Minecraft chat when you grant them the corresponding receive permission. The channel name in the permission matches the key you defined in `channels:`.
+
+```
+essentials.discord.receive.primary
+essentials.discord.receive.staff
+essentials.discord.receive.chat-only
+```
+
+You can also enable `always-receive-primary: true` to forward primary channel messages to all players without needing to assign permissions individually — useful for servers without a permissions plugin.
+
+### Discord-to-Minecraft message format
+
+```yaml
+messages:
+  discord-to-mc: "&6[#{channel}] &3{fullname}&7: &f{message}"
+```
+
+Available placeholders: `{channel}`, `{username}`, `{discriminator}`, `{fullname}`, `{nickname}`, `{role}`, `{color}`, `{message}`.
+
+### Minecraft-to-Discord message format
+
+```yaml
+messages:
+  mc-to-discord: "{displayname}: {message}"
+```
+
+Available placeholders: `{username}`, `{displayname}`, `{message}`, `{world}`, `{prefix}`, `{suffix}`. PlaceholderAPI placeholders are also supported.
+
+## Discord Slash Commands
+
+EssentialsX Discord registers three slash commands directly with Discord. Responses are ephemeral (visible only to you) by default.
+
+<CardGroup cols={3}>
+  <Card title="/execute" icon="terminal">
+    Run a Minecraft console command from Discord. Restricted to users or roles listed in `commands.execute.allowed-roles`.
+  </Card>
+  <Card title="/msg" icon="message">
+    Send a private message to an online Minecraft player. Available to everyone by default (`*`).
+  </Card>
+  <Card title="/list" icon="users">
+    Show the list of players currently online. Users in `admin-roles` can also see vanished players.
+  </Card>
+</CardGroup>
+
+Configure each command under the `commands:` section:
+
+```yaml
+commands:
+  execute:
+    enabled: true
+    hide-command: true        # hide your input from others in the channel
+    allowed-roles:
+      - "Admins"
+      - "123456789012345678"  # role ID also accepted
+  msg:
+    enabled: true
+    hide-command: true
+    allowed-roles:
+      - "*"                   # allow everyone
+    admin-roles:
+      - "Admins"
+  list:
+    enabled: true
+    hide-command: true
+    allowed-roles:
+      - "*"
+    admin-roles:
+      - "Admins"
+```
+
+<Note>
+  Changes to `enabled` take effect only after a full server restart, not after `/ess reload`.
+</Note>
+
+## Bot Presence
+
+Customize how the bot appears in the Discord member list:
+
+```yaml
+presence:
+  status: online       # online | idle | dnd | invisible
+  activity: playing    # playing | listening | watching | competing | none
+  message: "Minecraft"
+```
+
+## Player Avatars
+
+When `show-avatar: true` is set, the bot uses a webhook to post chat messages with the player's Minecraft head as the profile picture. The bot needs the **Manage Webhooks** permission in each channel where avatars will appear.
+
+```yaml
+show-avatar: false
+avatar-url: "https://crafthead.net/helm/{uuid}"
+```
+
+## Permissions
+
+| Permission | Description |
+|---|---|
+| `essentials.discord.markdown` | Bypass the Markdown filter — lets players use bold, italic, underline, etc. in Minecraft chat for Discord |
+| `essentials.discord.ping` | Bypass the ping filter — lets players mention `@everyone` or `@here` from Minecraft chat |
+| `essentials.discord.receive.<channel>` | Receive Discord messages from the named channel in Minecraft chat |

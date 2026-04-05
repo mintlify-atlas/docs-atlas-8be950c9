@@ -1,0 +1,348 @@
+---
+title: "Discord Service"
+description: "Send messages to Discord channels and interact with the EssentialsX Discord bridge from your plugin."
+---
+
+EssentialsX Discord exposes a `DiscordService` that allows third-party plugins to send messages to Discord channels and interact with the Discord bridge. You can use it to route messages to built-in channels like chat and join/leave events, or define entirely custom channel keys your users configure themselves.
+
+<Info>
+  EssentialsX Discord must be installed, configured, and successfully connected to your Discord bot before any `DiscordService` calls will work. See the [EssentialsX Discord module guide](/modules/discord) for setup instructions.
+</Info>
+
+## Getting the DiscordService
+
+Retrieve the service through Bukkit's services manager. Always null-check the result — if EssentialsX Discord is not installed the manager returns `null`.
+
+```java
+DiscordService discordService = Bukkit.getServicesManager().load(DiscordService.class);
+if (discordService == null) {
+    // EssentialsX Discord is not installed or has not registered yet
+    return;
+}
+```
+
+<Tip>
+  Retrieve the service lazily (at the point of use) rather than caching it at `onEnable`. This avoids holding a stale reference if EssentialsX Discord is reloaded.
+</Tip>
+
+---
+
+## MessageType
+
+`MessageType` tells `DiscordService` which Discord channel to deliver a message to. Internally, EssentialsX Discord resolves the channel ID by looking up the type's key in the `message-types` section of its `config.yml`.
+
+### Built-in types
+
+`MessageType.DefaultTypes` exposes constants for every built-in event channel:
+
+| Constant | Config key | Player-scoped |
+|---|---|---|
+| `JOIN` | `join` | yes |
+| `FIRST_JOIN` | `first-join` | yes |
+| `LEAVE` | `leave` | yes |
+| `CHAT` | `chat` | yes |
+| `PRIVATE_CHAT` | `private-chat` | yes |
+| `DEATH` | `death` | yes |
+| `AFK` | `afk` | yes |
+| `ADVANCEMENT` | `advancement` | yes |
+| `ACTION` | `action` | yes |
+| `SERVER_START` | `server-start` | no |
+| `SERVER_STOP` | `server-stop` | no |
+| `KICK` | `kick` | no |
+| `MUTE` | `mute` | no |
+| `LOCAL` | `local` | yes |
+| `QUESTION` | `question` | yes |
+| `SHOUT` | `shout` | yes |
+
+### Creating a custom MessageType
+
+If none of the built-in types fit your use case, create your own with a unique key. The key must match `^[a-z0-9-]*$` — lowercase letters, digits, and dashes only. You can also use a raw Discord channel ID as the key if you prefer to manage the channel mapping in your own config rather than EssentialsX Discord's.
+
+```java
+MessageType type = new MessageType("my-awesome-channel");
+```
+
+After creating the type, register it so EssentialsX Discord can surface it in its config:
+
+```java
+discordService.registerMessageType(plugin, type);
+```
+
+<Warning>
+  Always register a custom `MessageType` before calling `sendMessage` with it, and only register each type once. Registration is permanent for the lifetime of the server.
+</Warning>
+
+---
+
+## DiscordService methods
+
+### sendMessage
+
+Sends a plain-text message to the channel mapped to the given `MessageType`.
+
+```java
+void sendMessage(MessageType type, String message, boolean allowGroupMentions)
+```
+
+<ParamField path="type" type="MessageType" required>
+  The message type that determines the destination channel. Use a `MessageType.DefaultTypes` constant or a registered custom type.
+</ParamField>
+
+<ParamField path="message" type="String" required>
+  The exact text to send. Discord Markdown is supported.
+</ParamField>
+
+<ParamField path="allowGroupMentions" type="boolean" required>
+  When `true`, `@everyone`, `@here`, and role mentions in the message are allowed to ping. Set to `false` for any user-generated content.
+</ParamField>
+
+---
+
+### sendChatMessage
+
+Sends a chat message formatted according to EssentialsX Discord's chat format configuration. This method does **not** fire a `DiscordChatMessageEvent`.
+
+```java
+// Send to the default chat channel
+void sendChatMessage(Player player, String chatMessage)
+
+// Send to the channel appropriate for the given ChatType
+void sendChatMessage(ChatType chatType, Player player, String chatMessage)
+```
+
+<ParamField path="player" type="Player" required>
+  The player who sent the message. Used to format the message with the player's name and avatar.
+</ParamField>
+
+<ParamField path="chatMessage" type="String" required>
+  The chat message text.
+</ParamField>
+
+<ParamField path="chatType" type="ChatType">
+  The type of chat (e.g. local, global). Determines which channel receives the message.
+</ParamField>
+
+---
+
+### registerMessageType
+
+Registers a custom `MessageType` with EssentialsX Discord so users can configure its destination channel in `config.yml`.
+
+```java
+void registerMessageType(Plugin plugin, MessageType type)
+```
+
+<ParamField path="plugin" type="Plugin" required>
+  Your plugin instance. Used to namespace the type and clean it up if your plugin is disabled.
+</ParamField>
+
+<ParamField path="type" type="MessageType" required>
+  The custom `MessageType` to register.
+</ParamField>
+
+---
+
+### isRegistered
+
+Returns `true` if a `MessageType` with the given key is already registered.
+
+```java
+boolean isRegistered(String key)
+```
+
+<ParamField path="key" type="String" required>
+  The `MessageType` key to look up.
+</ParamField>
+
+---
+
+### getInteractionController
+
+Returns the `InteractionController` used to register Discord slash commands.
+
+```java
+InteractionController getInteractionController()
+```
+
+See [Discord Slash Commands](/api/discord-slash-commands) for full usage.
+
+---
+
+### getMemberById
+
+Looks up a Discord guild member by their Discord user ID. Returns a `CompletableFuture` that completes with the `InteractionMember`, or `null` if no member with that ID is reachable.
+
+```java
+CompletableFuture<InteractionMember> getMemberById(String id)
+```
+
+<ParamField path="id" type="String" required>
+  The Discord user ID (a numeric snowflake string).
+</ParamField>
+
+---
+
+### getRole
+
+Returns the `InteractionRole` for the given Discord role ID, or `null` if no such role exists in the guild.
+
+```java
+InteractionRole getRole(String id)
+```
+
+<ParamField path="id" type="String" required>
+  The Discord role ID (a numeric snowflake string).
+</ParamField>
+
+---
+
+### modifyMemberRoles
+
+Adds or removes roles from a Discord guild member. Returns a `CompletableFuture` that completes when all operations finish.
+
+```java
+CompletableFuture<Void> modifyMemberRoles(
+    InteractionMember member,
+    Collection<InteractionRole> addRoles,
+    Collection<InteractionRole> removeRoles
+)
+```
+
+<ParamField path="member" type="InteractionMember" required>
+  The guild member to modify.
+</ParamField>
+
+<ParamField path="addRoles" type="Collection&lt;InteractionRole&gt;">
+  Roles to add. Pass `null` to add none.
+</ParamField>
+
+<ParamField path="removeRoles" type="Collection&lt;InteractionRole&gt;">
+  Roles to remove. Pass `null` to remove none.
+</ParamField>
+
+---
+
+### getInviteUrl
+
+Returns the Discord invite URL set in the EssentialsX Discord configuration.
+
+```java
+String getInviteUrl()
+```
+
+---
+
+## Examples
+
+### Sending to a built-in channel
+
+```java
+// The built-in channel you want to send your message to — in this case, the chat channel.
+final MessageType channel = MessageType.DefaultTypes.CHAT;
+// Set to true if your message should be allowed to ping @everyone, @here, or roles.
+// If you are sending user-generated content, you probably should keep this as false.
+final boolean allowGroupMentions = false;
+// Send the actual message
+final DiscordService api = Bukkit.getServicesManager().load(DiscordService.class);
+api.sendMessage(channel, "My Epic Message", allowGroupMentions);
+```
+
+### Using a custom message type
+
+Register a custom type once (for example, in your plugin constructor or `onEnable`) and reuse the stored instance when sending messages.
+
+```java
+public class CustomTypeExample {
+    private final DiscordService api;
+    private final MessageType type;
+
+    public CustomTypeExample(final Plugin plugin) {
+        // Gets the EssentialsX Discord API service, so we can register our type and
+        // send a message with it later.
+        api = Bukkit.getServicesManager().load(DiscordService.class);
+
+        // Create a new message type for the user to define in our config.
+        // Unless you're putting a discord channel id as the type key, it's probably
+        // a good idea to store this object, so you don't create it every time.
+        type = new MessageType("my-awesome-channel");
+
+        // Registers the type we just created with EssentialsX Discord.
+        api.registerMessageType(plugin, type);
+    }
+
+    @EventHandler()
+    public void onAwesomeEvent(AwesomeEvent event) {
+        // Set to true if your message should be allowed to ping @everyone, @here, or roles.
+        // If you are sending user-generated content, you probably should keep this as false.
+        final boolean allowGroupMentions = false;
+        // Send the actual message
+        api.sendMessage(type, "The player, " + event.getPlayer() + ", did something awesome!", allowGroupMentions);
+    }
+}
+```
+
+Your users then map `my-awesome-channel` to a Discord channel ID in EssentialsX Discord's `config.yml`:
+
+```yaml
+message-types:
+  chat: primary
+  my-awesome-channel: some-channel-name
+```
+
+---
+
+## DiscordChatMessageEvent
+
+`DiscordChatMessageEvent` fires before EssentialsX Discord relays a Minecraft chat message to Discord. Cancel it to suppress the relay, or call `setMessage` to modify the relayed text.
+
+This event is not fired by `sendChatMessage`.
+
+### Event methods
+
+<ParamField path="getPlayer()" type="Player">
+  The player whose chat message triggered the event.
+</ParamField>
+
+<ParamField path="getMessage()" type="String">
+  The message text that will be sent to Discord.
+</ParamField>
+
+<ParamField path="setMessage(String message)" type="void">
+  Replaces the message that will be relayed to Discord.
+</ParamField>
+
+<ParamField path="getChatType()" type="ChatType">
+  The type of chat the original message was sent in.
+</ParamField>
+
+<ParamField path="setCancelled(boolean cancel)" type="void">
+  When set to `true`, the message is not relayed to Discord.
+</ParamField>
+
+### Example: staff chat suppression
+
+A staff chat plugin can cancel the event to prevent staff messages from leaking into the public Discord channel.
+
+```java
+public class StaffChatExample {
+    private final StaffChatPlugin plugin = ...;
+
+    @EventHandler()
+    public void onDiscordChatMessage(DiscordChatMessageEvent event) {
+        // Checks if the player is in staff chat mode in this theoretical plugin.
+        if (plugin.isPlayerInStaffChat(event.getPlayer()) ||
+                // or we could check if their message started with a # if we use that
+                // to indicate typing in a specific channel.
+                event.getMessage().startsWith("#")) {
+            event.setCancelled(true);
+        }
+    }
+}
+```
+
+---
+
+## Further reading
+
+- [Discord Slash Commands](/api/discord-slash-commands) — Register custom `/commands` in Discord that interact with your server.
+- [EssentialsX Discord Javadocs](https://jd-v2.essentialsx.net/EssentialsDiscord) — Full API reference.

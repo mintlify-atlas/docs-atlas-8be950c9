@@ -1,0 +1,116 @@
+---
+title: "API Overview"
+description: "A high-level introduction to the EssentialsX Java API for Bukkit/Spigot/Paper plugin developers."
+---
+
+<Note>
+  The EssentialsX API is a **Java plugin API** for developers building on
+  Bukkit, Spigot, or Paper. It is not a REST API or a web service.
+</Note>
+
+EssentialsX exposes a public Java API that lets your plugin read and modify player
+data, interact with the economy, listen for EssentialsX events, send mail, and more.
+The API is distributed through the EssentialsX Maven repository and is designed to be
+included as a compile-only (provided) dependency — the actual implementation is
+supplied by the EssentialsX jar running on the server.
+
+## API packages
+
+EssentialsX ships two distinct API namespaces.
+
+### `net.ess3.api` — legacy API
+
+The original API package. It contains the core interfaces that most plugins use:
+
+| Type | Description |
+|------|-------------|
+| `IEssentials` | The root plugin interface. Entry point for all EssentialsX functionality. |
+| `IUser` | Wraps a player and exposes stored data: homes, money, AFK state, mail, jails, and more. |
+| `com.earth2me.essentials.api.Economy` | Static utility class for reading and writing player balances directly. |
+| `IWarps` | Warp management: create, delete, and list server warps. |
+| `IJails` | Jail management: create, delete, and list jails. |
+| `ITeleport` / `IAsyncTeleport` | Programmatic teleportation with warmup and cooldown support. |
+| `events.*` | Bukkit events fired by EssentialsX (AFK, vanish, balance changes, warps, etc.). |
+
+### `net.essentialsx.api.v2` — modern API
+
+Introduced in EssentialsX 2.x, this package provides newer, more structured APIs:
+
+| Type | Description |
+|------|-------------|
+| `services.mail.MailService` | Send in-game mail to players from your plugin, with optional expiry. |
+| `services.BalanceTop` | Read the server's balance top list. |
+| `services.discord.DiscordService` | Send messages to Discord channels and register slash commands (requires EssentialsX Discord). |
+| `events.*` | Modern events: `TransactionEvent`, `UserMailEvent`, `WarpModifyEvent`, `HomeModifyEvent`, and others. |
+| `events.chat.*` | Chat-specific events: `GlobalChatEvent`, `LocalChatEvent`. |
+| `events.discord.*` | Discord relay events (requires EssentialsX Discord). |
+
+## Getting the `IEssentials` instance
+
+All EssentialsX API access starts from the `IEssentials` instance. Retrieve it from
+the Bukkit plugin manager after your plugin has enabled:
+
+```java
+import net.ess3.api.IEssentials;
+import org.bukkit.Bukkit;
+
+IEssentials ess = (IEssentials) Bukkit.getPluginManager().getPlugin("Essentials");
+```
+
+From there you can access every part of the API:
+
+```java
+// Retrieve a wrapped user
+IUser user = ess.getUser(player);
+
+// Access warp and jail managers
+IWarps warps = ess.getWarps();
+IJails jails = ess.getJails();
+
+// Access the mail service (v2 API)
+MailService mail = ess.getMail();
+```
+
+## Maven repository
+
+EssentialsX artifacts are hosted on the EssentialsX Maven repository.
+
+| Channel | URL |
+|---------|-----|
+| Releases | `https://repo.essentialsx.net/releases/` |
+| Snapshots / dev builds | `https://repo.essentialsx.net/snapshots/` |
+
+| Type | Group ID | Artifact ID | Version |
+|------|----------|-------------|---------|
+| Latest release | `net.essentialsx` | `EssentialsX` | `2.21.2` |
+| Snapshot | `net.essentialsx` | `EssentialsX` | `2.22.0-SNAPSHOT` |
+| Legacy (pre-2.19.0) | `net.ess3` | `EssentialsX` | `2.18.2` |
+
+<Warning>
+  The group ID changed from `net.ess3` to `net.essentialsx` starting with version
+  2.19.0. If you are updating from an older dependency declaration, make sure you
+  use the correct group ID for your target version.
+</Warning>
+
+## What the API provides
+
+<CardGroup cols={2}>
+  <Card title="Dependency Setup" icon="box" href="/api/dependency-setup">
+    Add EssentialsX to your Maven or Gradle build and declare the dependency in
+    your `plugin.yml`.
+  </Card>
+  <Card title="Economy" icon="coins" href="/api/economy">
+    Read and write player balances using the `Economy` static class or via Vault.
+  </Card>
+  <Card title="Events" icon="bell" href="/api/events">
+    Listen for EssentialsX events like AFK changes, vanish toggles, warp usage,
+    balance updates, and more.
+  </Card>
+  <Card title="Mail Service" icon="envelope" href="/api/mail">
+    Send in-game mail to players from your plugin using `MailService`.
+  </Card>
+  <Card title="Discord Service" icon="discord" href="/api/discord-service">
+    Send messages to Discord channels and register slash commands via the
+    EssentialsX Discord module.
+  </Card>
+</CardGroup>

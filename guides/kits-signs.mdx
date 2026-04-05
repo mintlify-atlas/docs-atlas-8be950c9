@@ -1,0 +1,418 @@
+---
+title: "Kits & Signs"
+description: "Create item kits players can claim on a cooldown, and place interactive signs for shops, teleports, and utilities."
+---
+
+EssentialsX provides two complementary systems for automating common player interactions: **kits** let you define pre-configured item sets with cooldowns, and **signs** let you place clickable panels in the world that trigger actions like purchases, teleports, and heals.
+
+---
+
+## Kits
+
+A kit is a named collection of items (and optionally commands) that players can claim. Each kit has an optional cooldown delay measured in seconds.
+
+### Commands
+
+<Steps>
+  <Step title="Browse available kits">
+    Run `/kit` with no arguments to see all kits you have permission to use.
+
+    ```bash
+    /kit
+    ```
+  </Step>
+  <Step title="Claim a kit">
+    Specify the kit name to receive its items. If you have already claimed the kit and the cooldown has not expired, EssentialsX will tell you how long to wait.
+
+    ```bash
+    /kit tools
+    /kit <kitname> [player]
+    ```
+
+    With `essentials.kit.others`, you can give a kit to another player:
+
+    ```bash
+    /kit tools Steve
+    ```
+  </Step>
+  <Step title="Preview kit contents">
+    Use `/showkit` to see what items are in a kit before claiming it.
+
+    ```bash
+    /showkit tools
+    ```
+  </Step>
+  <Step title="Create a kit in-game">
+    Fill your inventory with the items you want, then run `/createkit`. EssentialsX writes the kit directly to `kits.yml` (or generates a paste link, depending on `pastebin-createkit` in `config.yml`).
+
+    ```bash
+    /createkit starter 86400
+    ```
+
+    The second argument is the cooldown in seconds. Use `-1` for a one-time-only kit.
+  </Step>
+  <Step title="Delete a kit">
+    Remove a kit entirely with `/delkit`.
+
+    ```bash
+    /delkit starter
+    ```
+  </Step>
+  <Step title="Reset a kit cooldown">
+    Admins can reset the cooldown for a specific kit on a player:
+
+    ```bash
+    /kitreset tools
+    /kitreset tools Steve
+    ```
+  </Step>
+</Steps>
+
+---
+
+### Defining kits in `kits.yml`
+
+All kits are stored in `kits.yml`. Each entry follows this structure:
+
+```yaml
+kits:
+  <kitname>:
+    delay: <seconds>   # Cooldown; use -1 for one-time use
+    items:
+      - <item> <quantity> [enchantment:level...] [itemmeta:value...]
+      - /<command>     # Optional: run a command when the kit is given
+```
+
+**Item syntax:** `<item[:datavalue]> <quantity> [enchantment:level] [name:Text] [lore:Line1|Line2]`
+
+#### Example kits from the default `kits.yml`
+
+```yaml
+kits:
+  # Basic tool kit with a 10-second cooldown
+  tools:
+    delay: 10
+    items:
+      - stonesword 1
+      - stoneshovel 1
+      - stonepickaxe 1
+      - stoneaxe 1
+
+  # Diamond tools with enchantments; 10-minute cooldown
+  dtools:
+    delay: 600
+    items:
+      - dpickaxe 1 efficiency:1 durability:1 fortune:1 name:&4Gigadrill lore:The_drill_that_&npierces|the_heavens
+      - dshovel 1 digspeed:3 name:Dwarf lore:Diggy|Diggy|Hole
+      - lhelm 1 color:255,255,255 name:Top_Hat lore:Good_day,_Good_day
+      # Runs a broadcast when this kit is given
+      - /broadcast {USERNAME} just got some fancy tools!
+
+  # One-time welcome kit
+  welcome:
+    delay: -1
+    items:
+      - bread 16
+      - torch 32
+      - woodsword 1
+      - /msg {USERNAME} Welcome to the server!
+```
+
+<Note>
+Kit names are treated as lowercase in both permissions and the `/kit` command. A kit named `DiamondSet` in `kits.yml` is accessed as `/kit diamondset`.
+</Note>
+
+You can also split kits across separate files. Place additional `.yml` files in the `kits/` subdirectory next to `kits.yml`. Each file must use the same `kits:` root key format.
+
+---
+
+### Kit cooldowns
+
+The `delay` value is the number of seconds between uses:
+
+| Value | Behavior |
+|---|---|
+| `0` | No cooldown; players can claim at any time |
+| `600` | 10-minute cooldown |
+| `86400` | 24-hour cooldown |
+| `-1` | One-time only; cannot be claimed again |
+
+Players with `essentials.kit.exemptdelay` bypass all cooldowns, including on sign-triggered kits.
+
+---
+
+### Kit configuration options
+
+```yaml
+# config.yml
+
+# Automatically equip armor pieces from kits if armor slots are empty
+kit-auto-equip: false
+
+# Remove one-time kits from /kit list once a player has claimed them
+skip-used-one-time-kits-from-kit-list: false
+
+# Write kit data to a pastebin link instead of kits.yml directly
+pastebin-createkit: false
+```
+
+---
+
+### Kit permissions
+
+| Permission | Description |
+|---|---|
+| `essentials.kit` | Access to the `/kit` command and kit list |
+| `essentials.kit.others` | Give a kit to another player |
+| `essentials.kit.exemptdelay` | Bypass all kit cooldowns |
+| `essentials.kits.*` | Access to all kits |
+| `essentials.kits.<kitname>` | Access to a specific kit |
+| `essentials.createkit` | Create kits in-game with `/createkit` |
+| `essentials.delkit` | Delete kits with `/delkit` |
+| `essentials.showkit` | Preview kit contents with `/showkit` |
+| `essentials.kitreset` | Reset kit cooldowns with `/kitreset` |
+| `essentials.kitreset.others` | Reset another player's kit cooldown |
+
+---
+
+## Signs
+
+EssentialsX signs are interactive panels placed in the world. Players click them to trigger actions such as buying items, teleporting to a warp, or claiming a kit.
+
+### Enabling signs
+
+Signs must be enabled in `config.yml` before they can be created:
+
+```yaml
+# config.yml
+enabledSigns:
+  - buy
+  - sell
+  - kit
+  - warp
+  - heal
+  - free
+  - trade
+  - enchant
+  - repair
+  - gamemode
+  - info
+  - balance
+  - mail
+  - randomteleport
+  - disposal
+  - anvil
+  - workbench
+  - grindstone
+  - loom
+  - smithing
+  - cartography
+  - stonecutter
+  - spawnmob
+  - time
+  - weather
+```
+
+Remove the `#` before each sign type you want to activate. Changes take effect after a server restart or `/essentials reload`.
+
+---
+
+### Sign types
+
+<AccordionGroup>
+  <Accordion title="[Buy] — Sell items to players">
+    Players click the sign to purchase items. The sign owner receives the money.
+
+    **Format:**
+    ```
+    [Buy]
+    <quantity>
+    <item name>
+    <price>
+    ```
+
+    **Example:**
+    ```
+    [Buy]
+    16
+    diamond
+    3200
+    ```
+
+    **Permissions:**
+    - `essentials.signs.create.buy` — Place a `[Buy]` sign
+    - `essentials.signs.use.buy` — Click and use a `[Buy]` sign
+    - `essentials.signs.break.buy` — Break a `[Buy]` sign
+  </Accordion>
+
+  <Accordion title="[Sell] — Buy items from players">
+    Players click the sign to sell items from their inventory in exchange for money.
+
+    **Format:**
+    ```
+    [Sell]
+    <quantity>
+    <item name>
+    <price>
+    ```
+
+    **Permissions:**
+    - `essentials.signs.create.sell` — Create
+    - `essentials.signs.use.sell` — Use
+    - `essentials.signs.break.sell` — Break
+  </Accordion>
+
+  <Accordion title="[Trade] — Player-to-player item trades">
+    Enables direct item-for-item trades between players. Both parties must click the sign.
+
+    **Permissions:**
+    - `essentials.signs.create.trade`
+    - `essentials.signs.use.trade`
+    - `essentials.signs.break.trade`
+    - `essentials.signs.trade.override` — Break trade signs created by others
+    - `essentials.signs.trade.override.collect` — Collect items from others' trade signs
+  </Accordion>
+
+  <Accordion title="[Free] — Give items at no cost">
+    Distributes items to players for free.
+
+    **Permissions:**
+    - `essentials.signs.create.free`
+    - `essentials.signs.use.free`
+    - `essentials.signs.break.free`
+  </Accordion>
+
+  <Accordion title="[Kit] — Distribute a kit via sign">
+    Clicking the sign gives the player the named kit, subject to normal kit cooldowns and permissions.
+
+    **Format:**
+    ```
+    [Kit]
+    <kit name>
+    
+    
+    ```
+
+    **Example:**
+    ```
+    [Kit]
+    tools
+    ```
+
+    The player must still have `essentials.kits.<kitname>` to receive the kit from a sign.
+
+    **Permissions:**
+    - `essentials.signs.create.kit`
+    - `essentials.signs.use.kit`
+    - `essentials.signs.break.kit`
+  </Accordion>
+
+  <Accordion title="[Warp] — Teleport players to a warp">
+    Clicking the sign teleports the player to the named warp point.
+
+    **Format:**
+    ```
+    [Warp]
+    <warp name>
+    
+    
+    ```
+
+    **Example:**
+    ```
+    [Warp]
+    market
+    ```
+
+    The player must have `essentials.warp` (and `essentials.warp.<name>` if per-warp permissions are in use).
+
+    **Permissions:**
+    - `essentials.signs.create.warp`
+    - `essentials.signs.use.warp`
+    - `essentials.signs.break.warp`
+  </Accordion>
+
+  <Accordion title="[Heal] — Restore a player's health">
+    Clicking the sign heals the player to full health. You can charge a price by setting an amount on line 3.
+
+    **Format:**
+    ```
+    [Heal]
+    
+    <price or blank>
+    
+    ```
+
+    **Permissions:**
+    - `essentials.signs.create.heal`
+    - `essentials.signs.use.heal`
+    - `essentials.signs.break.heal`
+  </Accordion>
+
+  <Accordion title="[Info] — Display information text">
+    Clicking the sign opens a paged info view from `info.txt`.
+
+    **Permissions:**
+    - `essentials.signs.create.info`
+    - `essentials.signs.use.info`
+    - `essentials.signs.break.info`
+  </Accordion>
+
+  <Accordion title="[Balance] — Show a player's balance">
+    Clicking the sign displays the player's current balance.
+
+    **Permissions:**
+    - `essentials.signs.create.balance`
+    - `essentials.signs.use.balance`
+    - `essentials.signs.break.balance`
+  </Accordion>
+
+  <Accordion title="[Enchant] — Open an enchanting interface">
+    Clicking the sign opens the enchantment interface.
+
+    **Permissions:**
+    - `essentials.signs.create.enchant`
+    - `essentials.signs.use.enchant`
+    - `essentials.signs.break.enchant`
+    - `essentials.signs.enchant.allowunsafe` — Allow unsafe enchantments on this sign
+  </Accordion>
+
+  <Accordion title="[Disposal] — Trash items">
+    Clicking the sign opens a trash/disposal inventory where items are deleted when the player closes it.
+
+    **Permissions:**
+    - `essentials.signs.create.disposal`
+    - `essentials.signs.use.disposal`
+    - `essentials.signs.break.disposal`
+  </Accordion>
+
+  <Accordion title="[Repair] — Repair held items">
+    Clicking the sign repairs the item the player is holding. You can charge a price.
+
+    **Permissions:**
+    - `essentials.signs.create.repair`
+    - `essentials.signs.use.repair`
+    - `essentials.signs.break.repair`
+  </Accordion>
+
+  <Accordion title="Workstation signs — Open crafting blocks">
+    Signs can open workstation UIs without requiring a physical block nearby. Supported types: `anvil`, `workbench`, `grindstone`, `loom`, `cartography`, `smithing`, `stonecutter`.
+
+    **Format (example for workbench):**
+    ```
+    [Workbench]
+    ```
+
+    Each workstation type has its own create/use/break permission trio following the same `essentials.signs.<type>.*` pattern.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+### Sign protection
+
+By default, only the player who placed a sign can break it. Grant `essentials.signs.protection.override` to let staff remove signs placed by others.
+
+### Color codes on signs
+
+Grant `essentials.signs.color`, `essentials.signs.format`, `essentials.signs.magic`, or `essentials.signs.rgb` to allow those formatting codes when creating signs.

@@ -1,0 +1,750 @@
+---
+title: "Events"
+description: "Listen to EssentialsX Bukkit events in your plugin for balance updates, AFK changes, teleports, chat, mail, and more."
+---
+
+EssentialsX fires Bukkit events you can listen to in your plugin. Register listeners the same way
+you would for any Bukkit event — implement `Listener`, annotate handler methods with `@EventHandler`,
+and register with `Bukkit.getPluginManager().registerEvents(this, plugin)`.
+
+EssentialsX ships events in two packages:
+
+- **`net.ess3.api.events`** — the original, long-standing events present since early EssentialsX.
+- **`net.essentialsx.api.v2.events`** — newer, more structured events added in EssentialsX 2.x.
+
+<Note>
+  Many `net.ess3.api.events` status-change events extend `StatusChangeEvent`, which extends
+  `StateChangeEvent` (both cancellable). They expose `getAffected()` for the player whose state
+  changed and `getController()` for the player who caused the change (e.g. a staff member). Call
+  `getValue()` to read the new boolean state.
+</Note>
+
+---
+
+## `net.ess3.api.events` — legacy events
+
+<AccordionGroup>
+
+  <Accordion title="AfkStatusChangeEvent">
+
+    **Trigger:** A player's AFK status changes — going AFK or returning from AFK.
+
+    **Cancellable:** Yes (inherits from `StatusChangeEvent` → `StateChangeEvent`).
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getAffected()` | `IUser` | The player whose AFK status changed. |
+    | `getController()` | `IUser` | The player (or same player) who caused the change. |
+    | `getValue()` | `boolean` | `true` if the player is now AFK, `false` if returning. |
+    | `getCause()` | `AfkStatusChangeEvent.Cause` | Why the AFK state changed. |
+
+    **`Cause` enum values:** `ACTIVITY`, `MOVE`, `INTERACT`, `COMMAND`, `JOIN`, `CHAT`, `QUIT`, `UNKNOWN`.
+
+    ```java
+    @EventHandler
+    public void onAfkChange(AfkStatusChangeEvent event) {
+        IUser user = event.getAffected();
+        boolean isNowAfk = event.getValue();
+        AfkStatusChangeEvent.Cause cause = event.getCause();
+        Bukkit.getLogger().info(user.getName() + " is " + (isNowAfk ? "now AFK" : "back") + " (cause: " + cause + ")");
+    }
+    ```
+
+  </Accordion>
+
+  <Accordion title="FlyStatusChangeEvent">
+
+    **Trigger:** A player's flight mode is toggled via `/fly`.
+
+    **Cancellable:** Yes.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getAffected()` | `IUser` | The player whose fly mode changed. |
+    | `getController()` | `IUser` | The player or staff member who ran `/fly`. |
+    | `getValue()` | `boolean` | `true` if flight is now enabled. |
+
+    ```java
+    @EventHandler
+    public void onFlyChange(FlyStatusChangeEvent event) {
+        if (event.getValue()) {
+            event.getAffected().getBase().sendMessage("Flight enabled!");
+        }
+    }
+    ```
+
+  </Accordion>
+
+  <Accordion title="GodStatusChangeEvent">
+
+    **Trigger:** A player's god mode is toggled.
+
+    **Cancellable:** Yes.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getAffected()` | `IUser` | The player whose god mode changed. |
+    | `getController()` | `IUser` | The player or staff member who triggered the change. |
+    | `getValue()` | `boolean` | `true` if god mode is now active. |
+
+    <Warning>
+      In older versions of EssentialsX (and the original Essentials), `getAffected()` and
+      `getController()` were inverted due to a long-standing bug. Verify the behaviour on your
+      target version.
+    </Warning>
+
+  </Accordion>
+
+  <Accordion title="JailStatusChangeEvent">
+
+    **Trigger:** A player is jailed or unjailed.
+
+    **Cancellable:** Yes.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getAffected()` | `IUser` | The player being jailed or released. |
+    | `getController()` | `IUser` | The staff member performing the action. |
+    | `getValue()` | `boolean` | `true` if the player is now jailed. |
+
+    <Note>
+      When a player is being jailed you cannot read their target jail name until after the
+      `/togglejail` command finishes. When they are being *unjailed*, call `getAffected().getJail()`
+      to read their current jail name before the event completes.
+    </Note>
+
+  </Accordion>
+
+  <Accordion title="MuteStatusChangeEvent">
+
+    **Trigger:** A player is muted or unmuted.
+
+    **Cancellable:** Yes.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getAffected()` | `IUser` | The player being muted or unmuted. |
+    | `getController()` | `IUser` | The staff member performing the action. |
+    | `getValue()` | `boolean` | `true` if the player is now muted. |
+    | `getTimestamp()` | `Optional<Long>` | Epoch ms when a temporary mute expires; empty if permanent or unknown. |
+    | `getReason()` | `String` | The mute reason, or `null` if none was given. |
+
+    ```java
+    @EventHandler
+    public void onMute(MuteStatusChangeEvent event) {
+        if (event.getValue()) {
+            event.getTimestamp().ifPresent(expiry ->
+                event.getAffected().getBase().sendMessage("Muted until: " + new Date(expiry))
+            );
+        }
+    }
+    ```
+
+  </Accordion>
+
+  <Accordion title="KitClaimEvent">
+
+    **Trigger:** A player claims a kit with `/kit`.
+
+    **Cancellable:** Yes.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getUser()` | `IUser` | The player claiming the kit. |
+    | `getKit()` | `Kit` | The kit being claimed. |
+
+    ```java
+    @EventHandler
+    public void onKitClaim(KitClaimEvent event) {
+        if (event.getKit().getName().equalsIgnoreCase("vip")) {
+            // Allow only players with a tag
+            if (!event.getUser().getBase().hasPermission("myserver.vip")) {
+                event.setCancelled(true);
+                event.getUser().getBase().sendMessage("You need VIP rank to claim this kit.");
+            }
+        }
+    }
+    ```
+
+  </Accordion>
+
+  <Accordion title="NickChangeEvent">
+
+    **Trigger:** A player's nickname is changed.
+
+    **Cancellable:** Yes.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getAffected()` | `IUser` | Due to an inversion bug, this returns the **controller** (the user who caused the change). |
+    | `getController()` | `IUser` | Due to an inversion bug, this returns the **affected** player (whose nick changed). |
+    | `getValue()` | `String` | The new nickname value. |
+
+    <Warning>
+      The `getAffected()` and `getController()` return values are **inverted** due to a
+      long-standing implementation bug in EssentialsX. `getAffected()` returns the user who
+      *caused* the change, and `getController()` returns the user whose nickname *was changed*.
+    </Warning>
+
+  </Accordion>
+
+  <Accordion title="PrivateMessagePreSendEvent">
+
+    **Trigger:** A private message (`/msg`, `/tell`, `/r`) is about to be delivered to its
+    recipient. Fires before the recipient sees the message.
+
+    **Cancellable:** Yes.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getSender()` | `IMessageRecipient` | The sender of the private message. |
+    | `getRecipient()` | `IMessageRecipient` | The intended recipient. |
+    | `getMessage()` | `String` | The message content. |
+    | `setMessage(String)` | `void` | Override the message that will be delivered. |
+
+    ```java
+    @EventHandler
+    public void onPrivateMessage(PrivateMessagePreSendEvent event) {
+        String filtered = event.getMessage().replace("badword", "***");
+        event.setMessage(filtered);
+    }
+    ```
+
+  </Accordion>
+
+  <Accordion title="PrivateMessageSentEvent">
+
+    **Trigger:** A private message has been processed (after delivery attempt). Not cancellable —
+    check `getResponse()` to see if the message was delivered successfully.
+
+    **Cancellable:** No.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getSender()` | `IMessageRecipient` | The sender. |
+    | `getRecipient()` | `IMessageRecipient` | The recipient. |
+    | `getMessage()` | `String` | The delivered message. |
+    | `getResponse()` | `IMessageRecipient.MessageResponse` | The result of the delivery attempt (e.g. success, ignored). |
+
+  </Accordion>
+
+  <Accordion title="TPARequestEvent">
+
+    **Trigger:** A player sends a `/tpa`, `/tpahere`, or `/tpaall` teleport request.
+
+    **Cancellable:** Yes.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getRequester()` | `CommandSource` | The source who initiated the request. |
+    | `getTarget()` | `IUser` | The player the request was sent to. |
+    | `isTeleportHere()` | `boolean` | `true` if this is a `/tpahere` (pull) request. |
+
+    ```java
+    @EventHandler
+    public void onTPARequest(TPARequestEvent event) {
+        // Block all incoming tpahere requests for a specific group
+        if (event.isTeleportHere() && event.getTarget().isAuthorized("myserver.nopull")) {
+            event.setCancelled(true);
+        }
+    }
+    ```
+
+  </Accordion>
+
+  <Accordion title="UserBalanceUpdateEvent">
+
+    **Trigger:** A player's balance changes for any reason.
+
+    **Cancellable:** No, but you can override the resulting balance with `setNewBalance()`.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getPlayer()` | `Player` | The Bukkit `Player` whose balance changed. |
+    | `getOldBalance()` | `BigDecimal` | The balance before the update. |
+    | `getNewBalance()` | `BigDecimal` | The balance after the update. |
+    | `setNewBalance(BigDecimal)` | `void` | Override the new balance before it is applied. |
+    | `getCause()` | `UserBalanceUpdateEvent.Cause` | Why the balance changed. |
+
+    **`Cause` enum values:** `COMMAND_ECO`, `COMMAND_PAY`, `COMMAND_SELL`, `API`, `SPECIAL`, `UNKNOWN`.
+
+    ```java
+    @EventHandler
+    public void onUserBalanceUpdate(UserBalanceUpdateEvent event) {
+        Player player = event.getPlayer();
+        BigDecimal oldBalance = event.getOldBalance();
+        BigDecimal newBalance = event.getNewBalance();
+        UserBalanceUpdateEvent.Cause cause = event.getCause();
+
+        player.sendMessage("Balance changed from " + oldBalance + " to " + newBalance
+            + " (reason: " + cause + ")");
+    }
+    ```
+
+  </Accordion>
+
+  <Accordion title="UserRandomTeleportEvent">
+
+    **Trigger:** A player uses `/tpr` (random teleport).
+
+    **Cancellable:** Yes.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getUser()` | `IUser` | The player using `/tpr`. |
+    | `getName()` | `String` | The name of the random teleport preset. |
+    | `getCenter()` | `Location` | The origin location the random point is chosen from. |
+    | `setCenter(Location)` | `void` | Override the center of the random area. |
+    | `getMinRange()` | `double` | Minimum radius of the random area. |
+    | `setMinRange(double)` | `void` | Override the minimum radius. |
+    | `getMaxRange()` | `double` | Maximum radius of the random area. |
+    | `setMaxRange(double)` | `void` | Override the maximum radius. |
+    | `isModified()` | `boolean` | `true` if any parameter was changed via a setter. |
+
+  </Accordion>
+
+  <Accordion title="UserTeleportHomeEvent">
+
+    **Trigger:** A player teleports home via `/home`.
+
+    **Cancellable:** Yes.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getUser()` | `IUser` | The player teleporting. |
+    | `getHomeName()` | `String` | The home name, `"bed"`, or `null` if type is `SPAWN`. |
+    | `getHomeLocation()` | `Location` | The destination. |
+    | `getHomeType()` | `UserTeleportHomeEvent.HomeType` | The type of home location. |
+
+    **`HomeType` enum values:** `HOME` (a named home), `BED` (the player's bed), `SPAWN` (world spawn).
+
+  </Accordion>
+
+  <Accordion title="UserWarpEvent">
+
+    **Trigger:** A player uses `/warp`.
+
+    **Cancellable:** Yes.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getUser()` | `IUser` | The player warping. |
+    | `getWarp()` | `String` | The name of the warp destination. |
+    | `setWarp(String)` | `void` | Redirect the player to a different warp. |
+    | `getTrade()` | `Trade` | Payment information associated with the warp (e.g. cost). |
+
+    ```java
+    @EventHandler
+    public void onWarp(UserWarpEvent event) {
+        // Redirect players from a removed warp to a replacement
+        if (event.getWarp().equalsIgnoreCase("oldspawn")) {
+            event.setWarp("spawn");
+        }
+    }
+    ```
+
+  </Accordion>
+
+  <Accordion title="Sign events (SignBreakEvent, SignCreateEvent, SignInteractEvent, SignTransactionEvent)">
+
+    These events fire around EssentialsX sign interactions. They are primarily intended for
+    internal EssentialsX use and the sign abstraction layer. External plugins should generally
+    not listen to these events directly.
+
+    Each sign event carries the `EssentialsSign.ISign`, the `EssentialsSign` definition, and the
+    `IUser` who triggered the action.
+
+  </Accordion>
+
+</AccordionGroup>
+
+---
+
+## `net.essentialsx.api.v2.events` — modern events
+
+<AccordionGroup>
+
+  <Accordion title="AsyncUserDataLoadEvent">
+
+    **Trigger:** During player login, after EssentialsX has finished loading the user's data and
+    updated their display name. This is the right place to send login messages that depend on the
+    player's display name being set.
+
+    **Cancellable:** No. Always fires asynchronously.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getUser()` | `IUser` | The user whose data was just loaded. |
+    | `getJoinMessage()` | `String` | The join message shown when the player connected, or `null` if none was displayed. |
+
+    ```java
+    @EventHandler
+    public void onUserDataLoad(AsyncUserDataLoadEvent event) {
+        // Safe to reference display name here — EssentialsX has already set it
+        IUser user = event.getUser();
+        Bukkit.broadcastMessage(user.getBase().getDisplayName() + " joined!");
+    }
+    ```
+
+  </Accordion>
+
+  <Accordion title="HelpopMessageSendEvent">
+
+    **Trigger:** A message is about to be sent to the helpop channel (e.g. via `/helpop`).
+
+    **Cancellable:** No.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getSender()` | `IMessageRecipient` | Who sent the helpop message. |
+    | `getRecipients()` | `List<IUser>` | The staff members who will receive it. |
+    | `getMessage()` | `String` | The helpop message content. |
+
+  </Accordion>
+
+  <Accordion title="HomeModifyEvent">
+
+    **Trigger:** A home is about to be created, deleted, renamed, or updated.
+
+    **Cancellable:** Yes.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getUser()` | `IUser` | The user who made the modification, or `null` if done by the console. |
+    | `getHomeOwner()` | `IUser` | The owner of the home being modified. |
+    | `getNewLocation()` | `Location` | The new location (null when deleting). |
+    | `getOldLocation()` | `Location` | The previous location (null when creating). |
+    | `getNewName()` | `String` | The new home name (null when deleting). |
+    | `getOldName()` | `String` | The previous home name (null when creating). |
+    | `getCause()` | `HomeModifyEvent.HomeModifyCause` | The type of modification. |
+
+    **`HomeModifyCause` enum values:** `CREATE`, `DELETE`, `RENAME`, `UPDATE`.
+
+    ```java
+    @EventHandler
+    public void onHomeModify(HomeModifyEvent event) {
+        if (event.getCause() == HomeModifyEvent.HomeModifyCause.DELETE) {
+            getLogger().info(event.getHomeOwner().getName()
+                + " deleted home: " + event.getOldName());
+        }
+    }
+    ```
+
+  </Accordion>
+
+  <Accordion title="KitPreExpandItemsEvent">
+
+    **Trigger:** Items from a kit are about to be delivered to the player. Fires right before the
+    items are handed out.
+
+    **Cancellable:** No. To prevent a kit from being claimed at all, cancel `KitClaimEvent` instead.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getUser()` | `IUser` | The player receiving the kit. |
+    | `getKitName()` | `String` | The name of the kit. |
+    | `getItemStacks()` | `List<ItemStack>` | A **mutable** list of items to be given. Add, remove, or replace items here. |
+
+    ```java
+    @EventHandler
+    public void onKitExpand(KitPreExpandItemsEvent event) {
+        // Add a bonus item to the "starter" kit for premium players
+        if (event.getKitName().equalsIgnoreCase("starter")
+                && event.getUser().getBase().hasPermission("myserver.premium")) {
+            event.getItemStacks().add(new ItemStack(Material.DIAMOND, 5));
+        }
+    }
+    ```
+
+  </Accordion>
+
+  <Accordion title="PreTransactionEvent">
+
+    **Trigger:** A `/pay` transaction is about to be processed. Fires before balances change.
+
+    **Cancellable:** Yes. Cancelling suppresses all messages to both parties.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getRequester()` | `CommandSource` | The source sending the money. |
+    | `getTarget()` | `IUser` | The player receiving the money. |
+    | `getAmount()` | `BigDecimal` | The amount to be transferred. |
+    | `setAmount(BigDecimal)` | `void` | Override the transfer amount (must be ≥ 0). |
+
+    <Warning>
+      Changing the amount with `setAmount()` does not verify that the requester has enough funds
+      to cover the new amount. Validate this yourself before overriding.
+    </Warning>
+
+    ```java
+    @EventHandler
+    public void onPreTransaction(PreTransactionEvent event) {
+        BigDecimal tax = event.getAmount().multiply(new BigDecimal("0.10"));
+        event.setAmount(event.getAmount().subtract(tax));
+    }
+    ```
+
+  </Accordion>
+
+  <Accordion title="TransactionEvent">
+
+    **Trigger:** A `/pay` transaction has been successfully completed. Fires after balances have
+    changed.
+
+    **Cancellable:** No.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getRequester()` | `CommandSource` | The source who sent the money. |
+    | `getTarget()` | `IUser` | The player who received the money. |
+    | `getAmount()` | `BigDecimal` | The final amount transferred. |
+
+  </Accordion>
+
+  <Accordion title="TeleportRequestResponseEvent">
+
+    **Trigger:** A player accepts or denies a teleport request (`/tpaccept` or `/tpdeny`).
+
+    **Cancellable:** Yes. Cancelling does not notify players — handle messaging yourself if needed.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getRequestee()` | `IUser` | The player who is accepting or denying the request. |
+    | `getRequester()` | `IUser` | The player who originally sent the request. |
+    | `getTpaRequest()` | `IUser.TpaRequest` | Details about the teleport request. |
+    | `isAccept()` | `boolean` | `true` if the request was accepted. |
+    | `isDeny()` | `boolean` | `true` if the request was denied. |
+
+  </Accordion>
+
+  <Accordion title="TeleportWarmupCancelledEvent">
+
+    **Trigger:** A player's teleport warmup is cancelled before the teleport fires.
+
+    **Cancellable:** No.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getPlayer()` | `Player` | The player whose warmup was cancelled. |
+    | `getTeleportType()` | `AsyncTeleport.TeleportType` | The type of teleport that was queued. |
+    | `getCancelReason()` | `TeleportWarmupCancelledEvent.CancelReason` | Why the warmup was cancelled. |
+    | `isPlayerNotified()` | `boolean` | Whether the player received an in-game message about the cancellation. |
+
+    **`CancelReason` enum values:** `LEAVE` (player disconnected), `MOVE` (player moved during warmup).
+
+  </Accordion>
+
+  <Accordion title="UserActionEvent">
+
+    **Trigger:** A player runs `/me` (action/emote command).
+
+    **Cancellable:** No.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getUser()` | `IUser` | The player who ran `/me`. |
+    | `getMessage()` | `String` | The action message content. |
+    | `getRecipients()` | `Collection<Player>` | The players who will see this action message. |
+
+  </Accordion>
+
+  <Accordion title="UserKickEvent">
+
+    **Trigger:** A player is kicked via the `/kick` command.
+
+    **Cancellable:** Yes.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getKicked()` | `IUser` | The player being kicked. |
+    | `getKicker()` | `IUser` | The staff member who issued `/kick`. |
+    | `getReason()` | `String` | The kick reason. |
+    | `setReason(String)` | `void` | Override the kick reason. |
+
+    ```java
+    @EventHandler
+    public void onUserKick(UserKickEvent event) {
+        Bukkit.broadcastMessage(event.getKicked().getName()
+            + " was kicked by " + event.getKicker().getName()
+            + ": " + event.getReason());
+    }
+    ```
+
+  </Accordion>
+
+  <Accordion title="UserMailEvent">
+
+    **Trigger:** Mail is sent to a player by another player or the console. May fire on any thread
+    — check `isAsynchronous()`.
+
+    **Cancellable:** Yes.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getRecipient()` | `IUser` | The player receiving the mail. |
+    | `getMessage()` | `MailMessage` | The full `MailMessage` object, including sender, timestamp, and content. |
+
+    ```java
+    @EventHandler
+    public void onUserMail(UserMailEvent event) {
+        MailMessage mail = event.getMessage();
+        getLogger().info(event.getRecipient().getName()
+            + " received mail from " + mail.getSenderUsername()
+            + ": " + mail.getMessage());
+    }
+    ```
+
+  </Accordion>
+
+  <Accordion title="WarpModifyEvent">
+
+    **Trigger:** A warp is about to be created, updated, or deleted.
+
+    **Cancellable:** Yes.
+
+    **Key methods:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getUser()` | `IUser` | The user who triggered the modification. |
+    | `getWarpName()` | `String` | The name of the warp being modified. |
+    | `getCause()` | `WarpModifyEvent.WarpModifyCause` | The type of modification. |
+    | `getOldLocation()` | `Location` | The warp's previous location, or `null` if creating or the old world is not loaded. |
+    | `getNewLocation()` | `Location` | The warp's new location, or `null` if deleting. |
+
+    **`WarpModifyCause` enum values:** `CREATE`, `UPDATE`, `DELETE`.
+
+  </Accordion>
+
+  <Accordion title="GlobalChatEvent / LocalChatEvent">
+
+    These events fire when a player sends a chat message that is routed through EssentialsX Chat's
+    global or local channel. Both extend `ChatEvent`, which is cancellable.
+
+    **Key methods (from `ChatEvent`):**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getPlayer()` | `Player` | The player who sent the message. |
+    | `getMessage()` | `String` | The message text. |
+    | `setMessage(String)` | `void` | Override the message. |
+    | `getFormat()` | `String` | The `String.format()`-compatible chat format string. |
+    | `setFormat(String)` | `void` | Override the format (must accept two `%s` placeholders: display name, message). |
+    | `getRecipients()` | `Set<Player>` | The set of players who will see the message. Mutable. |
+    | `getChatType()` | `ChatType` | Whether this is `GLOBAL` or `LOCAL` chat. |
+
+    **`LocalChatEvent` additionally provides:**
+
+    | Method | Return type | Description |
+    |--------|-------------|-------------|
+    | `getRadius()` | `long` | The configured local chat radius in blocks (not a squared value). |
+
+    ```java
+    @EventHandler
+    public void onGlobalChat(GlobalChatEvent event) {
+        // Remove a player from receiving global chat
+        event.getRecipients().remove(somePlayer);
+    }
+
+    @EventHandler
+    public void onLocalChat(LocalChatEvent event) {
+        getLogger().info("Local chat radius: " + event.getRadius());
+    }
+    ```
+
+    <Note>
+      `GlobalChatEvent` and `LocalChatEvent` require **EssentialsX Chat** to be installed. They
+      will not fire if you are using a different chat plugin.
+    </Note>
+
+  </Accordion>
+
+</AccordionGroup>
+
+---
+
+## Registering a listener
+
+```java
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import net.ess3.api.events.UserBalanceUpdateEvent;
+import net.essentialsx.api.v2.events.WarpModifyEvent;
+
+public class MyEssentialsListener implements Listener {
+
+    @EventHandler
+    public void onUserBalanceUpdate(UserBalanceUpdateEvent event) {
+        Player player = event.getPlayer();
+        BigDecimal newBalance = event.getNewBalance();
+        BigDecimal oldBalance = event.getOldBalance();
+        // Your logic here
+    }
+
+    @EventHandler
+    public void onWarpModify(WarpModifyEvent event) {
+        if (event.getCause() == WarpModifyEvent.WarpModifyCause.DELETE) {
+            Bukkit.broadcastMessage("Warp '" + event.getWarpName() + "' was deleted.");
+        }
+    }
+}
+```
+
+Register the listener in your plugin's `onEnable`:
+
+```java
+@Override
+public void onEnable() {
+    Bukkit.getPluginManager().registerEvents(new MyEssentialsListener(), this);
+}
+```

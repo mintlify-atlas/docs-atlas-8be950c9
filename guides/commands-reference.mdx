@@ -1,0 +1,230 @@
+---
+title: "Commands Reference"
+description: "Complete reference for every command provided by the core EssentialsX plugin, organized by category."
+---
+
+This page lists every command provided by the core **EssentialsX** plugin. Commands from addon modules (EssentialsX Chat, EssentialsX Spawn, EssentialsX Discord, etc.) are documented separately.
+
+All commands require the corresponding `essentials.<command>` permission. Operators receive `essentials.*` by default, which grants all permissions. See [Permissions](/guides/permissions) for details on assigning individual nodes.
+
+---
+
+<AccordionGroup>
+  <Accordion title="Communication">
+    | Command | Description | Usage | Key aliases |
+    |---|---|---|---|
+    | `/afk` | Mark yourself as away-from-keyboard | `/afk [player/message...]` | `away` |
+    | `/broadcast` | Broadcast a message to the entire server | `/broadcast <msg>` | `bc`, `bcast`, `shout` |
+    | `/broadcastworld` | Broadcast a message to a single world | `/broadcastworld <world> <msg>` | `bcw`, `bcastw` |
+    | `/me` | Describe an action in the context of your character | `/me <description>` | `action`, `describe` |
+    | `/msg` | Send a private message to a player | `/msg <player> <message>` | `w`, `m`, `t`, `pm`, `tell`, `whisper` |
+    | `/r` | Reply to the last player who messaged you | `/r <message>` | `reply` |
+    | `/rtoggle` | Switch whether replies go to the last sender or last recipient | `/rtoggle [player] [on\|off]` | `replytoggle` |
+    | `/msgtoggle` | Block or allow all incoming private messages | `/msgtoggle [player] [on\|off]` | — |
+    | `/mail` | Send, read, and manage in-game mail | `/mail [read\|send\|clear\|sendall\|sendtemp] [args...]` | `email`, `memo` |
+    | `/helpop` | Message online admins | `/helpop <message>` | `ac`, `amsg` |
+    | `/socialspy` | Toggle visibility of other players' private messages | `/socialspy [player] [on\|off]` | — |
+    | `/near` | List players near you or a specified player | `/near [playername] [radius]` | `nearby` |
+    | `/list` | List all online players | `/list [group]` | `online`, `playerlist`, `plist`, `who` |
+    | `/info` | Show server information set by the owner | `/info [chapter] [page]` | `about`, `ifo`, `inform`, `news` |
+    | `/motd` | View the message of the day | `/motd [chapter] [page]` | — |
+    | `/rules` | View the server rules | `/rules [chapter] [page]` | — |
+    | `/ignore` | Ignore or unignore a player | `/ignore <player>` | `unignore` |
+    | `/nick` | Change your nickname or another player's | `/nick [player] <nickname\|off>` | `nickname` |
+    | `/ping` | Check your connection latency | `/ping` | `pong` |
+    | `/playtime` | Show time played on the server | `/playtime [player]` | — |
+  </Accordion>
+
+  <Accordion title="Teleportation">
+    | Command | Description | Usage | Key aliases |
+    |---|---|---|---|
+    | `/back` | Return to your location before the last teleport | `/back [player]` | `return` |
+    | `/home` | Teleport to a saved home | `/home [player:][name]` | `homes` |
+    | `/sethome` | Save your current location as a home | `/sethome [[player:]name]` | `createhome` |
+    | `/delhome` | Delete a saved home | `/delhome [player:]<name>` | `remhome`, `rmhome` |
+    | `/renamehome` | Rename a home | `/renamehome <[player:]name> <new name>` | — |
+    | `/warp` | Teleport to a server warp or list warps | `/warp <pagenumber\|warp> [player]` | `warps` |
+    | `/setwarp` | Create a new warp at your location | `/setwarp <warp>` | `createwarp` |
+    | `/delwarp` | Delete a warp | `/delwarp <warp>` | `remwarp`, `rmwarp` |
+    | `/warpinfo` | Show coordinates of a warp | `/warpinfo <warp>` | — |
+    | `/tp` | Teleport to a player | `/tp <player> [otherplayer]` | `tele`, `teleport` |
+    | `/tpa` | Request to teleport to a player | `/tpa <player>` | `call`, `tpask` |
+    | `/tpahere` | Request that a player teleport to you | `/tpahere <player>` | — |
+    | `/tpaccept` | Accept a teleport request | `/tpaccept [player\|*]` | `tpyes` |
+    | `/tpdeny` | Reject a teleport request | `/tpdeny [player\|*]` | `tpno` |
+    | `/tpacancel` | Cancel all outstanding teleport requests | `/tpacancel [player]` | — |
+    | `/tphere` | Teleport a player to you | `/tphere <player>` | — |
+    | `/tpall` | Teleport all online players to a player | `/tpall [player]` | — |
+    | `/tpaall` | Request all players teleport to you | `/tpaall <player>` | — |
+    | `/tpauto` | Automatically accept all teleport requests | `/tpauto [player]` | — |
+    | `/tptoggle` | Block all teleportation to you | `/tptoggle [player] [on\|off]` | — |
+    | `/tpo` | Teleport override; bypasses tptoggle | `/tpo <player> [otherplayer]` | — |
+    | `/tpohere` | Teleport-here override; bypasses tptoggle | `/tpohere <player>` | — |
+    | `/tppos` | Teleport to specific coordinates | `/tppos <x> <y> <z> [yaw] [pitch] [world]` | — |
+    | `/tpr` | Teleport to a random location | `/tpr` | `tprandom` |
+    | `/settpr` | Configure random teleport center and range | `/settpr [center\|minrange\|maxrange] [value]` | `settprandom` |
+    | `/tpoffline` | Teleport to a player's last logout location | `/tpoffline <player>` | `otp`, `offlinetp` |
+    | `/jump` | Jump to the nearest block in your line of sight | `/jump` | `j` |
+    | `/spawn` | Teleport to the server spawn | `/spawn` | — |
+    | `/top` | Teleport to the highest block at your position | `/top` | — |
+    | `/bottom` | Teleport to the lowest block at your position | `/bottom` | — |
+    | `/ptime` | Set your personal client-side time | `/ptime [list\|reset\|day\|night\|dawn\|17:30\|4000ticks] [player\|*]` | `playertime` |
+    | `/pweather` | Set your personal client-side weather | `/pweather [list\|reset\|storm\|sun\|clear] [player\|*]` | `playerweather` |
+  </Accordion>
+
+  <Accordion title="Economy">
+    | Command | Description | Usage | Key aliases |
+    |---|---|---|---|
+    | `/balance` | Show your balance or another player's | `/balance [player]` | `bal`, `money` |
+    | `/balancetop` | Show the top balances on the server | `/balancetop [page]` | `baltop` |
+    | `/pay` | Pay another player from your balance | `/pay <player> <amount>` | — |
+    | `/paytoggle` | Toggle whether you accept payments | `/paytoggle [player]` | `payoff`, `payon` |
+    | `/payconfirmtoggle` | Toggle payment confirmation prompts | `/payconfirmtoggle` | `payconfirm` |
+    | `/eco` | Manage the server economy (admin) | `/eco <give\|take\|set\|reset> <player> <amount>` | `economy` |
+    | `/sell` | Sell items from your hand or inventory | `/sell <<item>\|hand\|inventory\|blocks> [amount]` | — |
+    | `/worth` | Check the sell value of an item | `/worth <<item>\|hand\|inventory\|blocks> [-][amount]` | `price` |
+    | `/setworth` | Set the sell value of an item | `/setworth [itemname\|id] <price>` | — |
+  </Accordion>
+
+  <Accordion title="Items & Inventory">
+    | Command | Description | Usage | Key aliases |
+    |---|---|---|---|
+    | `/give` | Give a player an item | `/give <player> <item\|numeric> [amount [itemmeta...]]` | — |
+    | `/item` | Spawn an item into your own inventory | `/item <item\|numeric> [amount [itemmeta...]]` | `i` |
+    | `/more` | Fill the held item stack to its maximum size | `/more [amount]` | — |
+    | `/clearinventory` | Clear all items in an inventory | `/clearinventory [player\|*] [item[:<data>]\|*\|**] [amount]` | `ci`, `clean`, `clear` |
+    | `/clearinventoryconfirmtoggle` | Toggle inventory clear confirmation prompts | `/clearinventoryconfirmtoggle` | `clearconfirm` |
+    | `/repair` | Repair the durability of items | `/repair [hand\|all]` | `fix` |
+    | `/condense` | Condense items into compact block forms | `/condense [itemname]` | `compact`, `blocks` |
+    | `/book` | Reopen and edit sealed books | `/book [title\|author [name]]` | — |
+    | `/firework` | Modify a stack of fireworks | `/firework <<meta param>\|power [amount]\|clear\|fire [amount]>` | — |
+    | `/skull` | Set the owner of a player skull | `/skull [owner] [player]` | `playerskull`, `head` |
+    | `/potion` | Add custom potion effects to a potion | `/potion <clear\|apply\|effect:<effect> power:<power> duration:<duration>>` | `elixer` |
+    | `/enchant` | Enchant the item you are holding | `/enchant <enchantmentname> [level]` | `enchantment` |
+    | `/itemname` | Name an item | `/itemname [name]` | `iname` |
+    | `/itemlore` | Edit the lore of an item | `/itemlore <add\|set\|clear> [text\|line] [text]` | `lore` |
+    | `/itemdb` | Search for an item by name or ID | `/itemdb <item>` | `dura`, `durability` |
+    | `/recipe` | Display crafting recipes for an item | `/recipe <item> [number]` | `formula`, `method` |
+    | `/unlimited` | Place items without consuming them | `/unlimited <list\|item\|clear> [player]` | `ul`, `unl` |
+    | `/hat` | Wear the held item as a hat | `/hat [remove]` | `head` |
+    | `/break` | Break the block you are looking at | `/break` | — |
+    | `/powertool` | Assign a command to the held item | `/powertool [command] [arguments]` | `pt` |
+    | `/powertoollist` | List all active powertools | `/powertoollist` | `ptlist` |
+    | `/powertooltoggle` | Enable or disable all powertools | `/powertooltoggle` | `ptt` |
+  </Accordion>
+
+  <Accordion title="Player management">
+    | Command | Description | Usage | Key aliases |
+    |---|---|---|---|
+    | `/nick` | Change a nickname | `/nick [player] <nickname\|off>` | `nickname` |
+    | `/god` | Enable invincibility | `/god [player] [on\|off]` | `godmode`, `tgm` |
+    | `/fly` | Enable flight | `/fly [player] [on\|off]` | — |
+    | `/heal` | Restore health to full | `/heal [player]` | — |
+    | `/feed` | Restore hunger to full | `/feed [player]` | `eat` |
+    | `/ext` | Extinguish a burning player | `/ext [player]` | `extinguish` |
+    | `/gamemode` | Change a player's game mode | `/gamemode <survival\|creative\|adventure\|spectator> [player]` | `gm`, `gmc`, `gms`, `gma`, `gmsp` |
+    | `/speed` | Change walk or fly speed | `/speed [type] <speed> [player]` | `flyspeed`, `walkspeed` |
+    | `/vanish` | Hide yourself from other players | `/vanish [player] [on\|off]` | `v` |
+    | `/invsee` | View another player's inventory | `/invsee <player>` | — |
+    | `/enderchest` | Open a player's ender chest | `/enderchest [player]` | `echest`, `ec`, `endersee` |
+    | `/exp` | Give, set, reset, or show a player's experience | `/exp [reset\|show\|set\|give] [playername [amount]]` | `xp` |
+    | `/burn` | Set a player on fire | `/burn <player> <seconds>` | — |
+    | `/ice` | Freeze a player | `/ice [player]` | `freeze` |
+    | `/lightning` | Strike a player or your cursor with lightning | `/lightning [player] [power]` | `shock`, `smite`, `strike`, `thor` |
+    | `/kill` | Kill a player | `/kill <player>` | — |
+    | `/suicide` | Kill yourself | `/suicide` | — |
+    | `/rest` | Rest a player (set sleep state) | `/rest [player]` | — |
+    | `/hat` | Equip the held item as headgear | `/hat [remove]` | — |
+  </Accordion>
+
+  <Accordion title="Moderation">
+    | Command | Description | Usage | Key aliases |
+    |---|---|---|---|
+    | `/ban` | Permanently ban a player | `/ban <player> [reason]` | — |
+    | `/banip` | Permanently ban an IP address | `/banip <address> [reason]` | — |
+    | `/unban` | Unban a player | `/unban <player>` | `pardon` |
+    | `/unbanip` | Unban an IP address | `/unbanip <address>` | `pardonip` |
+    | `/tempban` | Temporarily ban a player | `/tempban <player> <datediff> [reason]` | — |
+    | `/tempbanip` | Temporarily ban an IP address | `/tempbanip <player> <datediff> [reason]` | — |
+    | `/kick` | Kick a player with a reason | `/kick <player> [reason]` | — |
+    | `/kickall` | Kick all players except yourself | `/kickall [reason]` | — |
+    | `/mute` | Mute or unmute a player | `/mute <player> [datediff] [reason]` | `silence` |
+    | `/togglejail` | Jail or unjail a player | `/togglejail <player> <jailname> [datediff]` | `jail`, `unjail` |
+    | `/setjail` | Create a jail at your location | `/setjail <jailname>` | `createjail` |
+    | `/deljail` | Remove a jail | `/deljail <jailname>` | `remjail`, `rmjail` |
+    | `/jails` | List all defined jails | `/jails` | — |
+    | `/ignore` | Ignore or unignore a player | `/ignore <player>` | `unignore` |
+    | `/seen` | Show when a player last logged out | `/seen <playername>` | `alts` |
+    | `/whois` | Show detailed info about a player | `/whois <nickname>` | — |
+    | `/realname` | Look up a player's username by nickname | `/realname <nickname>` | — |
+    | `/sudo` | Force a player to execute a command | `/sudo <player> <command [args]>` | — |
+    | `/socialspy` | Toggle visibility of private messages | `/socialspy [player] [on\|off]` | — |
+    | `/helpop` | Message online admins | `/helpop <message>` | `ac`, `amsg` |
+    | `/msgtoggle` | Block incoming private messages for a player | `/msgtoggle [player] [on\|off]` | — |
+  </Accordion>
+
+  <Accordion title="World & environment">
+    | Command | Description | Usage | Key aliases |
+    |---|---|---|---|
+    | `/time` | Display or change the world time | `/time [set\|add] [day\|night\|dawn\|17:30\|4000ticks] [worldname\|all]` | `day`, `night` |
+    | `/weather` | Set the weather | `/weather <storm\|sun> [duration]` | `rain`, `sky`, `storm`, `sun` |
+    | `/thunder` | Enable or disable thunder | `/thunder <true\|false> [duration]` | — |
+    | `/ptime` | Set a player's personal client-side time | `/ptime [list\|reset\|day\|night\|dawn\|17:30\|4000ticks] [player\|*]` | `playertime` |
+    | `/pweather` | Set a player's personal client-side weather | `/pweather [list\|reset\|storm\|sun\|clear] [player\|*]` | `playerweather` |
+    | `/spawnmob` | Spawn a mob | `/spawnmob <mob>[:data][,<mount>[:data]] [amount] [player]` | `mob`, `spawnentity` |
+    | `/spawner` | Change the mob type of a spawner | `/spawner <mob> [delay]` | `mobspawner` |
+    | `/remove` | Remove entities from the world | `/remove <all\|tamed\|named\|drops\|arrows\|boats\|minecarts\|xp\|paintings\|itemframes\|monsters\|animals\|mobs\|[mobType]> [radius\|world]` | `butcher`, `killall` |
+    | `/tree` | Spawn a tree at your cursor | `/tree <tree\|birch\|redwood\|redmushroom\|brownmushroom\|jungle\|swamp>` | — |
+    | `/bigtree` | Spawn a large tree at your cursor | `/bigtree <tree\|redwood\|jungle\|darkoak>` | `largetree` |
+    | `/fireball` | Throw a projectile | `/fireball [fireball\|small\|large\|arrow\|skull\|egg\|snowball\|dragon\|splashpotion\|trident] [speed]` | `fireskull`, `fireentity` |
+    | `/world` | Switch between worlds | `/world [world]` | — |
+    | `/editsign` | Edit a sign in the world | `/editsign <set\|clear\|copy\|paste> [line number] [text]` | `sign` |
+  </Accordion>
+
+  <Accordion title="Admin & server">
+    | Command | Description | Usage | Key aliases |
+    |---|---|---|---|
+    | `/gc` | Report memory, uptime, and TPS | `/gc` | `lag`, `mem`, `memory`, `tps`, `uptime` |
+    | `/essentials` | Reload EssentialsX configuration | `/essentials` | `ess`, `essversion` |
+    | `/backup` | Run the configured backup script | `/backup` | — |
+    | `/sudo` | Make another player execute a command | `/sudo <player> <command [args]>` | — |
+    | `/seen` | Show a player's last logout time | `/seen <playername>` | `alts` |
+    | `/whois` | Show detailed player information | `/whois <nickname>` | — |
+    | `/realname` | Look up a player's username by nickname | `/realname <nickname>` | — |
+    | `/depth` | Show current depth relative to sea level | `/depth` | `height` |
+    | `/getpos` | Show your current coordinates | `/getpos [player]` | `coords`, `position`, `whereami` |
+    | `/compass` | Describe your current bearing | `/compass` | `direction` |
+    | `/exp` | Manage player experience | `/exp [reset\|show\|set\|give] [playername [amount]]` | `xp` |
+    | `/unlimited` | Allow unlimited item placement | `/unlimited <list\|item\|clear> [player]` | `ul`, `unl` |
+    | `/broadcast` | Broadcast a message to the server | `/broadcast <msg>` | `bc`, `bcast`, `shout` |
+    | `/broadcastworld` | Broadcast a message to a world | `/broadcastworld <world> <msg>` | `bcw` |
+    | `/customtext` | Trigger a custom text command defined in bukkit.yml | `/<alias>` | — |
+    | `/tpoffline` | Teleport to a player's last logout location | `/tpoffline <player>` | `otp`, `offlinetp` |
+  </Accordion>
+
+  <Accordion title="Workstations">
+    Open crafting-table-style UIs from anywhere without needing a physical block nearby.
+
+    | Command | Description | Usage | Key aliases |
+    |---|---|---|---|
+    | `/workbench` | Open a crafting table | `/workbench` | `craft`, `wb`, `wbench` |
+    | `/anvil` | Open an anvil | `/anvil` | — |
+    | `/enderchest` | Open your (or another player's) ender chest | `/enderchest [player]` | `echest`, `ec`, `endersee` |
+    | `/disposal` | Open a trash/disposal menu | `/disposal` | `trash` |
+    | `/grindstone` | Open a grindstone | `/grindstone` | — |
+    | `/loom` | Open a loom | `/loom` | — |
+    | `/cartographytable` | Open a cartography table | `/cartographytable` | `carttable` |
+    | `/stonecutter` | Open a stonecutter | `/stonecutter` | — |
+    | `/smithingtable` | Open a smithing table | `/smithingtable` | `smithtable` |
+  </Accordion>
+
+  <Accordion title="Kits">
+    | Command | Description | Usage | Key aliases |
+    |---|---|---|---|
+    | `/kit` | View available kits or claim one | `/kit [kit] [player]` | `kits` |
+    | `/createkit` | Create a kit from your current inventory | `/createkit <kitname> <delay>` | `kitcreate`, `kc`, `ck` |
+    | `/delkit` | Delete a kit | `/delkit <kit>` | `remkit`, `rmkit`, `deletekit` |
+    | `/showkit` | Preview the contents of a kit | `/showkit <kitname>` | `kitpreview`, `kitshow`, `preview` |
+    | `/kitreset` | Reset a kit cooldown for a player | `/kitreset <kit> [player]` | `kitr`, `resetkit` |
+  </Accordion>
+</AccordionGroup>

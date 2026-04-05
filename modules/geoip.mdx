@@ -1,0 +1,100 @@
+---
+title: "EssentialsX GeoIP"
+description: "Display a player's country or city on login and in /whois using the MaxMind GeoLite2 database."
+---
+
+EssentialsX GeoIP shows the geographic location (country or city) of players when they join the server and when a staff member runs `/whois`. It uses the free [MaxMind GeoLite2](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) database, which you download and store locally — no requests are made per-lookup.
+
+## Installation
+
+Drop `EssentialsXGeoIP.jar` into your `plugins/` folder alongside `EssentialsX.jar` and restart. The configuration lives in `plugins/EssentialsGeoIP/config.yml`.
+
+<Warning>
+  EssentialsX GeoIP requires a MaxMind license key to download the GeoLite2 database. The database is **not** bundled with the plugin. Create a free MaxMind account at [maxmind.com](https://www.maxmind.com/en/geolite2/signup) to get a license key.
+</Warning>
+
+## Database Setup
+
+<Steps>
+  <Step title="Create a MaxMind account">
+    Sign up for a free account at [maxmind.com](https://www.maxmind.com/en/geolite2/signup). Once logged in, generate a license key from your account page.
+  </Step>
+  <Step title="Add your license key to the config">
+    Open `plugins/EssentialsGeoIP/config.yml` and paste your license key:
+
+    ```yaml
+    database:
+      license-key: "YOUR_LICENSE_KEY_HERE"
+      download-if-missing: true
+    ```
+  </Step>
+  <Step title="Start or reload your server">
+    When the plugin loads with a valid license key and `download-if-missing: true`, it automatically downloads the GeoLite2-Country database (or GeoLite2-City if `show-cities` is enabled) from MaxMind.
+  </Step>
+</Steps>
+
+## Configuration
+
+```yaml
+database:
+  # Show city-level data instead of country-only.
+  # Requires the GeoLite2-City database (larger download).
+  show-cities: false
+
+  # Download the database automatically if it is missing.
+  download-if-missing: true
+
+  # MaxMind download URL for the country database.
+  download-url: "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key={LICENSEKEY}&suffix=tar.gz"
+
+  # MaxMind download URL for the city database (used when show-cities is true).
+  download-url-city: "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&license_key={LICENSEKEY}&suffix=tar.gz"
+
+  # Your MaxMind license key.
+  license-key: ""
+
+  update:
+    # Automatically re-download the database on a schedule.
+    enable: true
+    # How often to refresh the database, in days.
+    by-every-x-days: 30
+
+# Show location info in the server console/chat when a player logs in.
+show-on-login: true
+
+# Show location info in the output of /whois.
+show-on-whois: true
+
+# Translate location names using the locale configured in Essentials/config.yml.
+# Not all languages are supported. See https://dev.maxmind.com/geoip/geoip2/web-services/#Languages
+enable-locale: true
+```
+
+### Country vs. city data
+
+Setting `show-cities: false` (the default) downloads the smaller GeoLite2-Country database and displays only the country name. Setting it to `true` downloads the GeoLite2-City database and shows the city and subdivision (state/province) as well.
+
+<Note>
+  The city database is significantly larger than the country database. For most servers, country-level data is sufficient for moderation purposes.
+</Note>
+
+## Where Location Appears
+
+### On player login
+
+When a player joins, staff with `essentials.geoip.show` will see the player's location printed to the server console and in their chat (depending on your server's log settings).
+
+### In /whois
+
+Running `/whois <player>` includes the GeoIP location in the output when `show-on-whois: true`. This gives moderators a quick lookup without needing to check logs.
+
+## Permissions
+
+| Permission | Description |
+|---|---|
+| `essentials.geoip.show` | See players' country or city on login and in `/whois` |
+| `essentials.geoip.hide` | Hide your own location from users with `essentials.geoip.show` |
+
+<Tip>
+  Grant `essentials.geoip.show` to your moderation team and `essentials.geoip.hide` to VIP players or staff who prefer privacy.
+</Tip>

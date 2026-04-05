@@ -1,0 +1,230 @@
+---
+title: "Homes, Warps & Spawns"
+description: "Configure personal homes, server-wide warp points, spawn management, and random teleportation."
+---
+
+EssentialsX provides three distinct systems for moving players around your world: personal homes that each player manages, server-wide warp points that admins control, and spawn points that determine where players appear when joining or respawning.
+
+<Tabs>
+  <Tab title="Homes">
+    ## Homes
+
+    Homes are private teleport points each player sets for themselves. By default, players can set one home. You can raise the limit per permission group.
+
+    ### Commands
+
+    | Command | Usage | Description |
+    |---|---|---|
+    | `/sethome [name]` | `/sethome base` | Save your current position as a named home |
+    | `/home [name]` | `/home base` | Teleport to a saved home |
+    | `/delhome <name>` | `/delhome base` | Delete a saved home |
+    | `/renamehome <name> <new name>` | `/renamehome base spawn` | Rename an existing home |
+
+    **Aliases:** `/homes`, `/ehome`, `/esethome`, `/delhome`
+
+    ### Multiple homes
+
+    Grant `essentials.sethome.multiple` to allow a player to set more than one home. The exact limit is determined by a named set defined in `config.yml`.
+
+    ```yaml
+    # config.yml
+    sethome-multiple:
+      default: 3   # Players with essentials.sethome.multiple get 3 homes
+      vip: 5       # Players with essentials.sethome.multiple.vip get 5 homes
+      staff: 10    # Players with essentials.sethome.multiple.staff get 10 homes
+    ```
+
+    Assign the matching permission to the group:
+
+    | Permission | Effect |
+    |---|---|
+    | `essentials.sethome.multiple` | Enables multiple homes; uses the `default` limit |
+    | `essentials.sethome.multiple.vip` | Raises limit to the `vip` value (5 in the example) |
+    | `essentials.sethome.multiple.staff` | Raises limit to the `staff` value (10 in the example) |
+    | `essentials.sethome.multiple.unlimited` | No home limit |
+
+    <Note>
+    A player with both `essentials.sethome.multiple.vip` and `essentials.sethome.multiple.staff` will receive the highest limit among the sets they qualify for.
+    </Note>
+
+    ### Bed homes
+
+    If `essentials.sethome.bed` is granted, players can right-click a bed during the day to update their `bed` home without using the `/sethome` command. Grant `essentials.home.bed` so players can teleport to it with `/home bed`.
+
+    ### Home permissions reference
+
+    | Permission | Description |
+    |---|---|
+    | `essentials.home` | Use `/home` |
+    | `essentials.home.others` | Teleport to another player's home |
+    | `essentials.home.bed` | Use `/home bed` to teleport to bed |
+    | `essentials.sethome` | Use `/sethome` |
+    | `essentials.sethome.multiple` | Set more than one home |
+    | `essentials.sethome.multiple.<set>` | Raise home limit to a named set |
+    | `essentials.sethome.multiple.unlimited` | No home limit |
+    | `essentials.sethome.others` | Set a home for another player |
+    | `essentials.delhome` | Use `/delhome` |
+    | `essentials.delhome.others` | Delete another player's home |
+    | `essentials.renamehome` | Use `/renamehome` |
+    | `essentials.renamehome.others` | Rename another player's home |
+  </Tab>
+
+  <Tab title="Warps">
+    ## Warps
+
+    Warps are server-managed teleport destinations. Admins create and delete them; players use them. Unlike homes, warps are shared across the entire server.
+
+    ### Commands
+
+    | Command | Usage | Description |
+    |---|---|---|
+    | `/setwarp <name>` | `/setwarp market` | Create a warp at your current location |
+    | `/warp <name>` | `/warp market` | Teleport to a warp |
+    | `/warp [page]` | `/warp 2` | List all available warps |
+    | `/delwarp <name>` | `/delwarp market` | Delete a warp |
+    | `/warpinfo <name>` | `/warpinfo market` | Show the coordinates and world of a warp |
+
+    **Aliases:** `/createwarp`, `/warps`, `/ewarp`
+
+    ### Per-warp permissions
+
+    You can restrict access to individual warps using `essentials.warp.<warpname>`. When you grant this node to a group, only that group can use the named warp.
+
+    ```bash
+    # Allow the vip group to access the vip-lounge warp
+    lp group vip permission set essentials.warp.vip-lounge true
+    ```
+
+    <Tip>
+    If you want all players to access all warps, grant `essentials.warp` without any per-warp nodes. Per-warp nodes only come into play when you need to restrict specific warps to certain groups.
+    </Tip>
+
+    ### Warp permissions reference
+
+    | Permission | Description |
+    |---|---|
+    | `essentials.warp` | Use `/warp` to teleport to any available warp |
+    | `essentials.warp.list` | View the warp list |
+    | `essentials.warp.others` | Warp other players |
+    | `essentials.warp.<name>` | Restrict access to a specific named warp |
+    | `essentials.warp.overwrite.*` | Overwrite any existing warp |
+    | `essentials.warp.overwrite.<name>` | Overwrite a specific warp |
+    | `essentials.setwarp` | Create new warps |
+    | `essentials.delwarp` | Delete warps |
+    | `essentials.warpinfo` | View warp location info |
+  </Tab>
+
+  <Tab title="Spawn">
+    ## Spawn
+
+    EssentialsX controls server spawn points, where players appear when they first join, respawn after death, or run `/spawn`.
+
+    ### Commands
+
+    | Command | Usage | Description |
+    |---|---|---|
+    | `/spawn` | `/spawn` | Teleport to the server spawn |
+    | `/setspawn [group]` | `/setspawn newbies` | Set spawn for all players or a named group |
+
+    ### EssentialsSpawn module
+
+    The **EssentialsSpawn** addon module enables group-based spawn assignment. When installed, you can define a separate spawn point for each permission group. New players are sent to the `newbies` spawnpoint by default.
+
+    ```yaml
+    # config.yml — EssentialsSpawn settings
+    # Which spawnpoint new players use on first join
+    newbies:
+      spawnpoint: newbies
+
+    # Teleport all joining players to spawn
+    spawn-on-join: false
+    # Or teleport only the 'guests' group:
+    # spawn-on-join: guests
+
+    # Respawn behavior
+    respawn-listener-priority: high  # 'none', 'lowest', 'high', or 'highest'
+    respawn-at-home: false           # Respawn at first home instead of spawn
+    respawn-at-home-bed: true        # Prefer bed if respawn-at-home is true
+    ```
+
+    ### Spawn permissions
+
+    | Permission | Description |
+    |---|---|
+    | `essentials.spawn` | Teleport to spawn with `/spawn` |
+    | `essentials.setspawn` | Set a spawn point with `/setspawn` |
+  </Tab>
+</Tabs>
+
+---
+
+## Random teleport
+
+The `/tpr` command teleports a player to a random location within a configured range. This is useful for survival servers where you want players to spread out on first join.
+
+```bash
+/tpr
+```
+
+Configure the random teleport area with `/settpr`:
+
+```bash
+/settpr center 0 0       # Set the center X/Z coordinates
+/settpr minrange 500     # Minimum distance from center
+/settpr maxrange 10000   # Maximum distance from center
+```
+
+Settings are stored in `tpr.yml`. You can also integrate random teleport with new player spawning:
+
+```yaml
+# config.yml
+# Send new players to a random location instead of the spawn point
+random-spawn-location: "world"
+```
+
+| Permission | Description |
+|---|---|
+| `essentials.tpr` | Use `/tpr` for random teleportation |
+| `essentials.settpr` | Configure random teleport parameters |
+
+---
+
+## Teleport safety
+
+By default, EssentialsX moves players to the nearest safe block if the teleport destination is inside a solid block or over a void. You can configure this behavior in `config.yml`:
+
+```yaml
+# Move players to the nearest safe location if the destination is unsafe
+teleport-safety: true
+
+# Disable safety checks entirely (dangerous — use with caution)
+force-disable-teleport-safety: false
+
+# Treat water blocks as safe landing spots
+is-water-safe: false
+
+# Dismount passengers before teleporting
+teleport-passenger-dismount: true
+```
+
+---
+
+## The `/back` command
+
+After any teleport (warp, home, spawn, or `/tp`), players can use `/back` to return to their previous location.
+
+```bash
+/back
+/back <player>  # Return another player (requires essentials.back.others)
+```
+
+| Permission | Description |
+|---|---|
+| `essentials.back` | Use `/back` after a teleport |
+| `essentials.back.others` | Use `/back` for other players |
+| `essentials.back.ondeath` | Store location on death so `/back` works after respawning (default: false) |
+| `essentials.back.onteleport` | Store location on any teleport (default: true) |
+
+<Note>
+`essentials.back.ondeath` defaults to `false`. Grant it explicitly to groups where you want players to return to their death location after respawning.
+</Note>

@@ -1,0 +1,442 @@
+---
+title: "Economy API"
+description: "Read and modify player balances using the EssentialsX Economy static utility class."
+---
+
+EssentialsX provides a static `Economy` utility class (`com.earth2me.essentials.api.Economy`) for
+interacting with player balances directly. This API is separate from Vault's economy API — it gives
+you finer control over balances and uses `BigDecimal` for precision arithmetic.
+
+<Note>
+  If you are integrating with multiple economy plugins, prefer the **Vault economy API** for
+  portability. Use the EssentialsX `Economy` class when you need EssentialsX-specific behaviour
+  such as NPC accounts or the `MATH_CONTEXT` precision guarantees.
+</Note>
+
+## Exceptions
+
+Every method that touches a balance can throw one or more of these checked exceptions.
+
+| Exception | Package | When thrown |
+|-----------|---------|-------------|
+| `UserDoesNotExistException` | `com.earth2me.essentials.api` | No user record exists for the given name or UUID. |
+| `NoLoanPermittedException` | `com.earth2me.essentials.api` | The operation would push the balance below the server's minimum (usually negative) and the player lacks `essentials.eco.loan`. |
+| `MaxMoneyException` | `net.ess3.api` | The resulting balance exceeds the server's configured maximum balance. |
+
+<Warning>
+  Always catch all three exceptions when calling mutating methods. Uncaught checked exceptions will
+  propagate and may crash your event handler or command.
+</Warning>
+
+## Reading balances
+
+### `getMoneyExact(UUID uuid)`
+
+Returns the exact balance of the account with the given UUID.
+
+```java
+public static BigDecimal getMoneyExact(UUID uuid) throws UserDoesNotExistException
+```
+
+<ParamField path="uuid" type="UUID" required>
+  The UUID of the user account to retrieve the balance for.
+</ParamField>
+
+**Returns** `BigDecimal` — the account's balance, with full `DECIMAL128` precision.
+
+---
+
+### `getMoneyExact(User user)`
+
+Returns the exact balance of an already-resolved `User` object. Does not throw
+`UserDoesNotExistException` — pass a non-null `User`.
+
+```java
+public static BigDecimal getMoneyExact(User user)
+```
+
+<ParamField path="user" type="User" required>
+  The resolved `IUser` / `User` whose balance you want to read. Must not be `null`.
+</ParamField>
+
+**Returns** `BigDecimal` — the account's balance.
+
+---
+
+### `getMoney(String name)` <span style={{color:'#ef4444'}}>(deprecated)</span>
+
+Returns the balance as a `double`. Precision may be lost when converting from `BigDecimal` to
+`double`. Prefer `getMoneyExact(UUID)`.
+
+```java
+@Deprecated
+public static double getMoney(String name) throws UserDoesNotExistException
+```
+
+<ParamField path="name" type="String" required>
+  The username of the player. Deprecated because usernames can change.
+</ParamField>
+
+---
+
+### `getMoneyExact(String name)` <span style={{color:'#ef4444'}}>(deprecated)</span>
+
+Returns the exact balance for a player looked up by username.
+
+```java
+@Deprecated
+public static BigDecimal getMoneyExact(String name) throws UserDoesNotExistException
+```
+
+<ParamField path="name" type="String" required>
+  The username of the player. Deprecated because usernames can change.
+</ParamField>
+
+## Setting balances
+
+### `setMoney(UUID uuid, BigDecimal balance)`
+
+Sets a player's balance to the specified amount.
+
+```java
+public static void setMoney(UUID uuid, BigDecimal balance)
+    throws UserDoesNotExistException, NoLoanPermittedException, MaxMoneyException
+```
+
+<ParamField path="uuid" type="UUID" required>
+  The UUID of the user account to update.
+</ParamField>
+<ParamField path="balance" type="BigDecimal" required>
+  The new balance to set. Must be within the server's configured min/max bounds unless the player
+  has the `essentials.eco.loan` permission.
+</ParamField>
+
+---
+
+### `setMoney(User user, BigDecimal balance)`
+
+Sets a balance on a pre-resolved `User`.
+
+```java
+public static void setMoney(User user, BigDecimal balance)
+    throws NoLoanPermittedException, MaxMoneyException
+```
+
+<ParamField path="user" type="User" required>
+  The resolved `User` to update. Must not be `null`.
+</ParamField>
+<ParamField path="balance" type="BigDecimal" required>
+  The new balance.
+</ParamField>
+
+---
+
+### `setMoney(String name, BigDecimal balance)` <span style={{color:'#ef4444'}}>(deprecated)</span>
+
+```java
+@Deprecated
+public static void setMoney(String name, BigDecimal balance)
+    throws UserDoesNotExistException, NoLoanPermittedException, MaxMoneyException
+```
+
+Prefer `setMoney(UUID, BigDecimal)`.
+
+## Arithmetic operations
+
+All arithmetic methods operate on the current balance and apply `MathContext.DECIMAL128` precision.
+They each have overloads for `String` (deprecated), `UUID`, and `User`.
+
+### `add`
+
+Adds an amount to a user's balance.
+
+```java
+public static void add(UUID uuid, BigDecimal amount)
+    throws UserDoesNotExistException, NoLoanPermittedException, MaxMoneyException
+
+public static void add(User user, BigDecimal amount)
+    throws NoLoanPermittedException, MaxMoneyException
+```
+
+<ParamField path="uuid / user" type="UUID | User" required>
+  Identifies the account to modify.
+</ParamField>
+<ParamField path="amount" type="BigDecimal" required>
+  The amount to add. Pass a positive value to credit the account.
+</ParamField>
+
+---
+
+### `subtract`
+
+Subtracts an amount from a user's balance.
+
+```java
+public static void subtract(UUID uuid, BigDecimal amount)
+    throws UserDoesNotExistException, NoLoanPermittedException, MaxMoneyException
+
+public static void subtract(User user, BigDecimal amount)
+    throws NoLoanPermittedException, MaxMoneyException
+```
+
+<ParamField path="uuid / user" type="UUID | User" required>
+  Identifies the account to modify.
+</ParamField>
+<ParamField path="amount" type="BigDecimal" required>
+  The amount to subtract. Will throw `NoLoanPermittedException` if the result is below the
+  server minimum and the player lacks the loan permission.
+</ParamField>
+
+---
+
+### `multiply`
+
+Multiplies a user's balance by a factor.
+
+```java
+public static void multiply(UUID uuid, BigDecimal amount)
+    throws UserDoesNotExistException, NoLoanPermittedException, MaxMoneyException
+
+public static void multiply(User user, BigDecimal amount)
+    throws NoLoanPermittedException, MaxMoneyException
+```
+
+<ParamField path="uuid / user" type="UUID | User" required>
+  Identifies the account to modify.
+</ParamField>
+<ParamField path="amount" type="BigDecimal" required>
+  The multiplier.
+</ParamField>
+
+---
+
+### `divide`
+
+Divides a user's balance by a divisor.
+
+```java
+public static void divide(UUID uuid, BigDecimal amount)
+    throws UserDoesNotExistException, NoLoanPermittedException, MaxMoneyException
+
+public static void divide(User user, BigDecimal amount)
+    throws NoLoanPermittedException, MaxMoneyException
+```
+
+<ParamField path="uuid / user" type="UUID | User" required>
+  Identifies the account to modify.
+</ParamField>
+<ParamField path="amount" type="BigDecimal" required>
+  The divisor. Passing `BigDecimal.ZERO` will throw `ArithmeticException`.
+</ParamField>
+
+## Resetting balances
+
+### `resetBalance(UUID uuid)` / `resetBalance(User user)`
+
+Resets a user's balance to the server's configured starting balance.
+
+```java
+public static void resetBalance(UUID uuid)
+    throws UserDoesNotExistException, NoLoanPermittedException, MaxMoneyException
+
+public static void resetBalance(User user)
+    throws NoLoanPermittedException, MaxMoneyException
+```
+
+## Balance comparison
+
+### `hasEnough`
+
+Returns `true` if the user's balance is greater than or equal to `amount`.
+
+```java
+public static boolean hasEnough(UUID uuid, BigDecimal amount)
+    throws UserDoesNotExistException
+
+public static boolean hasEnough(User user, BigDecimal amount)
+```
+
+### `hasMore`
+
+Returns `true` if the user's balance is strictly greater than `amount`.
+
+```java
+public static boolean hasMore(UUID uuid, BigDecimal amount)
+    throws UserDoesNotExistException
+
+public static boolean hasMore(User user, BigDecimal amount)
+```
+
+### `hasLess`
+
+Returns `true` if the user's balance is strictly less than `amount`.
+
+```java
+public static boolean hasLess(UUID uuid, BigDecimal amount)
+    throws UserDoesNotExistException
+
+public static boolean hasLess(User user, BigDecimal amount)
+```
+
+### `isNegative`
+
+Returns `true` if the user's balance is below zero.
+
+```java
+public static boolean isNegative(UUID uuid) throws UserDoesNotExistException
+public static boolean isNegative(User user)
+```
+
+## Formatting
+
+### `format(BigDecimal amount)`
+
+Formats an amount using the server's configured currency symbol and locale. For example:
+`$1,234.56` or `1.234,56 €`.
+
+```java
+public static String format(BigDecimal amount)
+```
+
+<ParamField path="amount" type="BigDecimal" required>
+  The monetary value to format.
+</ParamField>
+
+**Returns** `String` — a human-readable, server-formatted currency string.
+
+## Account existence
+
+### `playerExists(UUID uuid)`
+
+Returns `true` if a user record exists for the given UUID without throwing an exception.
+
+```java
+public static boolean playerExists(UUID uuid)
+```
+
+### `playerExists(String name)` <span style={{color:'#ef4444'}}>(deprecated)</span>
+
+```java
+@Deprecated
+public static boolean playerExists(String name)
+```
+
+Prefer `playerExists(UUID)`.
+
+## NPC accounts
+
+NPC accounts are virtual economy accounts not attached to any real player. They are used by plugins
+such as shop systems.
+
+### `createNPC(String name)`
+
+Creates a dummy NPC account if one does not already exist with that name.
+
+```java
+public static boolean createNPC(String name)
+```
+
+<ParamField path="name" type="String" required>
+  The display name for the NPC account.
+</ParamField>
+
+**Returns** `true` if a new account was created; `false` if one already existed.
+
+---
+
+### `removeNPC(String name)`
+
+Deletes an NPC account. The account must be marked as an NPC in user data.
+
+```java
+public static void removeNPC(String name) throws UserDoesNotExistException
+```
+
+<ParamField path="name" type="String" required>
+  The name of the NPC account to delete.
+</ParamField>
+
+---
+
+### `isNPC(String name)`
+
+Returns `true` if the account for `name` is flagged as an NPC.
+
+```java
+public static boolean isNPC(String name) throws UserDoesNotExistException
+```
+
+## Examples
+
+### Getting a player's balance
+
+```java
+import com.earth2me.essentials.api.Economy;
+import com.earth2me.essentials.api.UserDoesNotExistException;
+import java.math.BigDecimal;
+import java.util.UUID;
+
+UUID uuid = player.getUniqueId();
+try {
+    BigDecimal balance = Economy.getMoneyExact(uuid);
+    player.sendMessage("Your balance: " + Economy.format(balance));
+} catch (UserDoesNotExistException e) {
+    player.sendMessage("No economy account found.");
+}
+```
+
+### Giving money to a player
+
+```java
+try {
+    Economy.add(player.getUniqueId(), new BigDecimal("100.00"));
+    player.sendMessage("You received $100!");
+} catch (UserDoesNotExistException e) {
+    player.sendMessage("Economy account not found.");
+} catch (NoLoanPermittedException e) {
+    player.sendMessage("This transaction would exceed your loan limit.");
+} catch (MaxMoneyException e) {
+    player.sendMessage("You have reached the maximum balance.");
+}
+```
+
+### Checking whether a player can afford a purchase
+
+```java
+BigDecimal price = new BigDecimal("50.00");
+try {
+    if (Economy.hasEnough(player.getUniqueId(), price)) {
+        Economy.subtract(player.getUniqueId(), price);
+        player.sendMessage("Purchase successful!");
+    } else {
+        player.sendMessage("You cannot afford this. Balance: "
+            + Economy.format(Economy.getMoneyExact(player.getUniqueId())));
+    }
+} catch (UserDoesNotExistException | NoLoanPermittedException | MaxMoneyException e) {
+    player.sendMessage("Economy error: " + e.getMessage());
+}
+```
+
+### Creating an NPC shop account
+
+```java
+// Create the NPC account on plugin enable (idempotent)
+if (Economy.createNPC("MyShopAccount")) {
+    getLogger().info("Created NPC economy account for MyShopAccount.");
+} else {
+    getLogger().info("MyShopAccount already exists.");
+}
+
+// Later: credit the shop account when a player sells an item
+try {
+    Economy.add("MyShopAccount", new BigDecimal("25.00"));
+} catch (UserDoesNotExistException | NoLoanPermittedException | MaxMoneyException e) {
+    getLogger().warning("Failed to credit shop account: " + e.getMessage());
+}
+```
+
+<Tip>
+  Always use `BigDecimal` rather than `double` for monetary values. Floating-point arithmetic is
+  imprecise and can silently accumulate rounding errors. EssentialsX applies `MathContext.DECIMAL128`
+  precision to all balance operations, so `BigDecimal` inputs preserve that accuracy.
+</Tip>

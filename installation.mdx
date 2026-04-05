@@ -1,0 +1,134 @@
+---
+title: "Installation"
+description: "Download and install EssentialsX on your Minecraft server in a few steps."
+---
+
+<Warning>
+  EssentialsX is a separate fork from the original Essentials plugin. Do **not** ask the original Essentials project for support — they cannot help with EssentialsX issues. For support, join the [MOSS Discord](https://discord.gg/casfFyh) or open an issue on the [EssentialsX GitHub](https://github.com/EssentialsX/Essentials/issues/new/choose).
+</Warning>
+
+## Module jars
+
+EssentialsX is distributed as a set of independent module jars. Install the core jar plus any modules your server needs:
+
+<CodeGroup>
+
+```text Core (required)
+EssentialsX.jar
+```
+
+```text Chat
+EssentialsXChat.jar
+```
+
+```text Spawn
+EssentialsXSpawn.jar
+```
+
+```text Protect
+EssentialsXProtect.jar
+```
+
+```text GeoIP
+EssentialsXGeoIP.jar
+```
+
+```text Discord
+EssentialsXDiscord.jar
+```
+
+```text Discord Link
+EssentialsXDiscordLink.jar
+```
+
+```text AntiBuild
+EssentialsXAntiBuild.jar
+```
+
+</CodeGroup>
+
+## Installation steps
+
+<Steps>
+  <Step title="Download EssentialsX">
+    Go to [essentialsx.net/downloads.html](https://essentialsx.net/downloads.html) to get the latest release or a development build.
+
+    - **Releases** are stable builds recommended for production servers.
+    - **Dev builds** include the latest fixes and features but may be less stable.
+
+    Download `EssentialsX.jar` and any additional module jars you need from the list above.
+  </Step>
+
+  <Step title="Install Vault">
+    EssentialsX requires [Vault](https://dev.bukkit.org/projects/vault) to enable chat prefix/suffix display and group support from your permissions plugin. Without Vault, these features will not work.
+
+    Download `Vault.jar` from the Bukkit project page and place it in your `plugins/` folder.
+  </Step>
+
+  <Step title="Install LuckPerms (recommended)">
+    EssentialsX works with any Vault-compatible permissions plugin, but the team recommends [LuckPerms](https://luckperms.net) for managing permissions and groups.
+
+    Download the correct LuckPerms jar for your server software (Bukkit/Spigot/Paper) and place it in your `plugins/` folder.
+
+    If you use an unsupported permissions plugin and want wildcard support, enable `use-bukkit-permissions: true` in `config.yml` after installation.
+  </Step>
+
+  <Step title="Drop jars into the plugins folder">
+    Copy all downloaded jars into your server's `plugins/` directory:
+
+    ```text
+    plugins/
+    ├── EssentialsX.jar          # required
+    ├── EssentialsXChat.jar      # optional
+    ├── EssentialsXSpawn.jar     # optional
+    ├── EssentialsXProtect.jar   # optional
+    ├── Vault.jar
+    └── LuckPerms-Bukkit.jar
+    ```
+
+    You do not need to install all modules. Only include the ones relevant to your server.
+  </Step>
+
+  <Step title="Start your server">
+    Start your server and watch the console output. You should see EssentialsX load successfully:
+
+    ```text
+    [Essentials] Enabling Essentials vX.X.X
+    [Essentials] Starting Essentials...
+    [Essentials] Loaded X commands.
+    [Essentials] Essentials enabled in X ms.
+    ```
+
+    If you see errors, check that:
+    - Your server runs CraftBukkit, Spigot, or Paper
+    - Your Java version is 8 or higher
+    - Vault is installed if you are using a permissions plugin
+  </Step>
+
+  <Step title="Stop the server and edit config.yml">
+    Once EssentialsX loads successfully for the first time, it generates a `config.yml` in `plugins/Essentials/`. Stop your server, then open that file to configure EssentialsX for your needs.
+
+    ```bash
+    # Location of the generated config file
+    plugins/Essentials/config.yml
+    ```
+
+    See the [Configuration](/configuration) guide for a breakdown of the key settings.
+  </Step>
+</Steps>
+
+## Verifying the installation
+
+After restarting with your edited config, run the following command in-game or from the console to confirm EssentialsX is running:
+
+```bash
+/ess version
+```
+
+This prints the loaded EssentialsX version and lists which modules are active.
+
+To reload config changes without restarting the server, use:
+
+```bash
+/ess reload
+```

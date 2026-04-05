@@ -1,0 +1,123 @@
+---
+title: "EssentialsX Spawn"
+description: "Control where players spawn on join, respawn, and first join with EssentialsX Spawn."
+---
+
+EssentialsX Spawn gives you precise control over where players land when they join the server, when they die and respawn, and when they connect for the very first time. You can define group-specific spawn points so different permission groups teleport to different locations.
+
+## Installation
+
+Drop `EssentialsXSpawn.jar` into your `plugins/` folder alongside `EssentialsX.jar` and restart. Spawn behavior is configured in `plugins/Essentials/config.yml` under the `newbies:` and `spawn-on-join:` keys — no separate config file is generated.
+
+## Commands
+
+| Command | Usage | Description |
+|---|---|---|
+| `/setspawn [group]` | `/setspawn`, `/setspawn vip` | Set the spawn point at your current location. Optionally assign it to a specific group. |
+| `/spawn [player]` | `/spawn`, `/spawn Steve` | Teleport yourself (or another player) to the spawn point. |
+
+## Spawn on Join
+
+By default, players join wherever they last logged out. Set `spawn-on-join` to `true` to send every player to the configured spawn point when they connect:
+
+```yaml
+spawn-on-join: true
+```
+
+You can also restrict this behavior to specific permission groups. Only players in those groups are teleported to spawn on join; others connect at their last location:
+
+```yaml
+# Single group
+spawn-on-join: guests
+
+# Multiple groups
+spawn-on-join:
+  - guests
+  - members
+```
+
+Players with the `essentials.spawn-on-join.exempt` permission bypass the spawn-on-join teleport regardless of the setting.
+
+## New Player Spawn
+
+The `newbies:` section controls what happens when a player joins for the first time:
+
+```yaml
+newbies:
+  # Broadcast message on first join. Set to '' to disable.
+  announce-format: '&dWelcome {DISPLAYNAME}&d to the server!'
+
+  # Spawnpoint to use for new players.
+  # Set to 'none' to use the world's default spawn.
+  # Create the named spawnpoint with /setspawn <name>.
+  spawnpoint: newbies
+
+  # Give new players a kit on first join (ignores cost and cooldown).
+  # Set to '' to disable.
+  kit: tools
+```
+
+Set a dedicated first-join spawnpoint by running `/setspawn newbies` in game while standing at the location you want. You can use any name here — it does not have to be `newbies` — as long as the `spawnpoint` value in the config matches the name you used with `/setspawn`.
+
+## Group-Based Spawns
+
+You can define a different spawn location for each permission group. Use `/setspawn <group>` to assign a spawnpoint to a group name, then players in that group teleport to their group's spawnpoint when using `/spawn` or when `spawn-on-join` is active.
+
+```bash
+# Stand at the VIP lounge, then:
+/setspawn vip
+
+# Stand at the admin hub, then:
+/setspawn admin
+```
+
+If a player belongs to a group that has no assigned spawnpoint, they fall back to the default spawn.
+
+## Respawn Behavior
+
+EssentialsX Spawn also intercepts respawn events after death. Configure the priority to control how it interacts with other plugins:
+
+```yaml
+# Priority for handling respawns after death.
+# none | lowest | high | highest
+respawn-listener-priority: high
+
+# Priority for handling where players land on join.
+spawn-join-listener-priority: high
+```
+
+By default, players respawn at the server spawn. You can override this to send them to their first home or bed instead:
+
+```yaml
+# Respawn at player's first home (or bed if respawn-at-home-bed is true)
+respawn-at-home: false
+
+# When respawn-at-home is true, prefer the player's bed over their first home
+respawn-at-home-bed: true
+
+# Respect respawn anchors in the Nether
+respawn-at-anchor: false
+```
+
+## Random Spawn Location
+
+If you have configured a random teleport location (via `/settpr`), you can send new players and respawning players to a random location instead of a fixed spawn point:
+
+```yaml
+# World name (or tpr.yml alias) to use for random first spawns
+random-spawn-location: "world"
+
+# World name to use for random respawns after death
+random-respawn-location: "world"
+```
+
+Set these to `"none"` (the default) to disable random spawning.
+
+## Permissions
+
+| Permission | Description |
+|---|---|
+| `essentials.spawn` | Use `/spawn` to teleport yourself to spawn |
+| `essentials.spawn.others` | Use `/spawn <player>` to teleport another player to spawn |
+| `essentials.setspawn` | Use `/setspawn` to set or update a spawnpoint |
+| `essentials.spawn-on-join.exempt` | Bypass the spawn-on-join teleport on login |

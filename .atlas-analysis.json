@@ -1,0 +1,107 @@
+{
+  "projectType": "general",
+  "projectName": "EssentialsX",
+  "projectDescription": "A modern, feature-rich Minecraft server plugin suite for Spigot and Paper that provides essential commands, economy, chat formatting, Discord integration, and more.",
+  "theme": "palm",
+  "primaryColor": "#ea4f4b",
+  "lightColor": "#f4706c",
+  "darkColor": "#ffffff",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "configuration"
+            ]
+          },
+          {
+            "group": "Modules",
+            "pages": [
+              "modules/chat",
+              "modules/discord",
+              "modules/spawn",
+              "modules/protect",
+              "modules/geoip",
+              "modules/discordlink"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/permissions",
+              "guides/economy",
+              "guides/homes-warps-spawns",
+              "guides/kits-signs",
+              "guides/commands-reference"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Developer API",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "api/overview",
+              "api/dependency-setup"
+            ]
+          },
+          {
+            "group": "Core API",
+            "pages": [
+              "api/economy",
+              "api/events",
+              "api/mail"
+            ]
+          },
+          {
+            "group": "Discord API",
+            "pages": [
+              "api/discord-service",
+              "api/discord-slash-commands"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "100+ essential server commands (teleport, home, warp, kit, economy, moderation, etc.)",
+    "Vault-integrated economy system with balance, pay, and sign shops",
+    "EssentialsX Chat module for custom chat formatting with prefixes/suffixes",
+    "EssentialsX Discord module for bidirectional Minecraft-Discord bridge",
+    "EssentialsX Spawn for fine-grained spawn/respawn control",
+    "EssentialsX Protect for block and physics protection",
+    "EssentialsX GeoIP for geolocation-based player info",
+    "EssentialsX DiscordLink for linking Minecraft accounts to Discord",
+    "Extensive permission system with hundreds of granular permission nodes",
+    "Developer API for economy, teleport, events, and Discord integration",
+    "Multi-language support with 50+ community translations via Crowdin",
+    "Supports Minecraft 1.8.8 through the latest versions"
+  ],
+  "publicApiSurface": [
+    "net.ess3.api.IEssentials — main plugin interface",
+    "net.ess3.api.IUser — player data and state access",
+    "com.earth2me.essentials.api.Economy — economy operations (getMoneyExact, setMoney, add, subtract)",
+    "net.ess3.api.ITeleport — teleport API",
+    "net.ess3.api.IWarps — warp management",
+    "net.ess3.api.IJails — jail management",
+    "com.earth2me.essentials.api.IItemDb — item lookup by name/id",
+    "net.essentialsx.api.v2.services.mail.MailService — mail API",
+    "net.essentialsx.api.v2.services.discord.DiscordService — send messages and register slash commands",
+    "net.essentialsx.api.v2.services.discord.InteractionCommand — base class for Discord slash commands",
+    "net.essentialsx.api.v2.services.discord.MessageType — message routing channels",
+    "net.essentialsx.api.v2.events.discord.DiscordChatMessageEvent — cancel/modify Discord chat relay",
+    "net.ess3.api.events.UserBalanceUpdateEvent — triggered on economy changes",
+    "net.ess3.api.events.NickChangeEvent — triggered on nickname changes",
+    "net.ess3.api.events.AfkStatusChangeEvent — triggered on AFK state change",
+    "net.essentialsx.api.v2.events.HomeModifyEvent — triggered on home set/delete",
+    "net.essentialsx.api.v2.events.WarpModifyEvent — triggered on warp set/delete"
+  ]
+}

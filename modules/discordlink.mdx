@@ -1,0 +1,146 @@
+---
+title: "EssentialsX DiscordLink"
+description: "Link Minecraft accounts to Discord accounts and sync permission groups with Discord roles."
+---
+
+EssentialsX DiscordLink is an add-on for [EssentialsX Discord](/modules/discord) that lets players connect their Minecraft account to their Discord account. Once linked, the plugin can automatically sync Vault permission groups to Discord roles and vice versa, enforce a link requirement before players can join or chat, and DM players their in-game mail on Discord.
+
+## Requirements
+
+- **EssentialsX Discord** must be installed and fully configured before DiscordLink will load.
+- Role sync requires **Vault** and a compatible permissions plugin (e.g. LuckPerms).
+
+## Installation
+
+Drop `EssentialsXDiscordLink.jar` into your `plugins/` folder alongside `EssentialsXDiscord.jar` and restart. The config is generated at `plugins/EssentialsDiscordLink/config.yml`.
+
+## Linking an Account
+
+<Steps>
+  <Step title="Run /link in Minecraft">
+    Join the server and run `/link` in chat. The plugin replies with a short numeric code.
+
+    ```bash
+    /link
+    ```
+  </Step>
+  <Step title="Run /link in Discord">
+    Open your Discord server where the EssentialsX bot lives. Use the `/link` slash command and pass the code you received in game:
+
+    ```
+    /link <code>
+    ```
+
+    The bot confirms the link immediately.
+  </Step>
+</Steps>
+
+To unlink at any time, players can run `/unlink` in Minecraft.
+
+## Link Policy
+
+The `link-policy` setting controls what happens when a player who has not linked their account tries to join:
+
+```yaml
+# Options: none | freeze | kick
+link-policy: none
+```
+
+| Value | Behavior |
+|---|---|
+| `none` | No restrictions. Unlinked players join and play normally. |
+| `freeze` | Unlinked players can join but cannot move, chat, or run commands until they link. They receive the link code automatically. |
+| `kick` | Unlinked players are kicked on join and receive the link code in the kick message. |
+
+## Role Synchronization
+
+DiscordLink can keep Vault groups and Discord roles in sync automatically for any player who has linked their account.
+
+### Vault group → Discord role
+
+Players in a listed Vault group receive the corresponding Discord role when they link their account (and whenever the sync audit runs).
+
+### Discord role → Vault group
+
+Players with a listed Discord role receive the corresponding Vault group in Minecraft when they link their account.
+
+Configure both directions under `role-sync:` in `plugins/EssentialsDiscordLink/config.yml`:
+
+```yaml
+role-sync:
+  # Remove Discord roles from players who unlink or lose the Minecraft group
+  remove-roles: true
+
+  # Remove Minecraft groups from players who unlink or lose the Discord role
+  remove-groups: true
+
+  # How often (in minutes) to audit and re-sync all linked players.
+  # Requires a restart after changing.
+  resync-delay: 5
+
+  # Only consider a player's primary Vault group (ignore secondary groups)
+  primary-group-only: false
+
+  # Vault group name → Discord role ID
+  groups:
+    default: 000000000000000000
+    vip: 882835722640433242
+    admin: 111111111111111111
+
+  # Discord role ID → Vault group name
+  roles:
+    882835662280224818: donator
+    999999999999999999: booster
+```
+
+<Steps>
+  <Step title="Get Discord role IDs">
+    In Discord, enable **Developer Mode** (Settings → Advanced → Developer Mode). Then right-click a role in your server's role list and click **Copy ID**.
+  </Step>
+  <Step title="Add the sync mappings to config">
+    Add each Vault group → role ID pair under `groups:`, and each role ID → Vault group pair under `roles:`. You can configure either direction independently.
+  </Step>
+  <Step title="Reload">
+    Run `ess reload` from your console. Linked players will be audited on the next sync cycle (within `resync-delay` minutes).
+  </Step>
+</Steps>
+
+## Additional Features
+
+### Mail relay
+
+When `relay-mail: true` (default), any in-game mail sent to a linked player is also delivered to them as a Discord DM from the bot.
+
+```yaml
+relay-mail: true
+```
+
+### Block unlinked Discord chat
+
+Prevent messages from unlinked Discord members from appearing in Minecraft chat:
+
+```yaml
+block-unlinked-chat: false
+```
+
+### Unlink on Discord leave
+
+Automatically unlink a player's account if they leave your Discord server:
+
+```yaml
+unlink-on-leave: true
+```
+
+## Commands
+
+| Command | Description |
+|---|---|
+| `/link` | Generate a link code to connect your Minecraft account to Discord |
+| `/unlink` | Remove the link between your Minecraft and Discord accounts |
+
+## Permissions
+
+| Permission | Description |
+|---|---|
+| `essentials.link` | Use the `/link` command |
+| `essentials.unlink` | Use the `/unlink` command |

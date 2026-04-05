@@ -1,0 +1,293 @@
+---
+title: "Mail API"
+description: "Send in-game mail to players programmatically using the EssentialsX MailService."
+---
+
+EssentialsX provides a `MailService` interface for sending in-game mail between players from your
+plugin. Mail appears in the player's mailbox and is retrieved with `/mail read`. Messages support
+optional expiry and are backed by the same storage system as player-sent mail.
+
+## Getting the `MailService`
+
+`MailService` is registered as a Bukkit service. Retrieve it through the services manager after
+EssentialsX has enabled:
+
+```java
+import net.essentialsx.api.v2.services.mail.MailService;
+import org.bukkit.Bukkit;
+
+MailService mailService = Bukkit.getServicesManager().load(MailService.class);
+```
+
+<Warning>
+  Always null-check the result. `load()` returns `null` if EssentialsX is not installed or has not
+  yet registered the service. Retrieve the service each time you need it rather than caching it
+  across reloads.
+</Warning>
+
+## `MailService` interface
+
+### `sendMail(IUser recipient, MailSender sender, String message)`
+
+Sends a mail message with full metadata (sender name, UUID, timestamp). This is the recommended
+method for new integrations.
+
+```java
+void sendMail(IUser recipient, MailSender sender, String message)
+```
+
+<ParamField path="recipient" type="IUser" required>
+  The `IUser` who will receive the mail. Obtain this from `IEssentials.getUser(player)`.
+</ParamField>
+<ParamField path="sender" type="MailSender" required>
+  The entity sending the mail. Any class that implements `MailSender` — in practice, an `IUser`
+  (player) or the console object. See [MailSender](#mailsender) below.
+</ParamField>
+<ParamField path="message" type="String" required>
+  The message content to deliver. Plain text; EssentialsX applies its own formatting when
+  displaying the message.
+</ParamField>
+
+---
+
+### `sendMail(IUser recipient, MailSender sender, String message, long expireAt)`
+
+Sends a mail message that expires at a specific time. The message is not shown to the player after
+`expireAt`.
+
+```java
+void sendMail(IUser recipient, MailSender sender, String message, long expireAt)
+```
+
+<ParamField path="recipient" type="IUser" required>
+  The player who will receive the mail.
+</ParamField>
+<ParamField path="sender" type="MailSender" required>
+  The entity sending the mail.
+</ParamField>
+<ParamField path="message" type="String" required>
+  The message content.
+</ParamField>
+<ParamField path="expireAt" type="long" required>
+  The Unix epoch time in milliseconds at which this message expires. Pass `0` if the message
+  should never expire.
+</ParamField>
+
+---
+
+### `sendLegacyMail(IUser recipient, String message)` <span style={{color:'#ef4444'}}>(deprecated)</span>
+
+Sends mail without sender metadata. Kept for backwards compatibility only. Use `sendMail(IUser,
+MailSender, String)` instead.
+
+```java
+@Deprecated
+void sendLegacyMail(IUser recipient, String message)
+```
+
+---
+
+### `getMailLine(MailMessage message)`
+
+Generates the formatted string that EssentialsX would display to the recipient for a given
+`MailMessage`. Useful for previewing or logging mail content.
+
+```java
+String getMailLine(MailMessage message)
+```
+
+<ParamField path="message" type="MailMessage" required>
+  The `MailMessage` to format.
+</ParamField>
+
+**Returns** `String` — the formatted mail line as shown in-game.
+
+---
+
+### `getMailTlKey(MailMessage message)`
+
+Returns the translation key used to look up the mail message format string.
+
+```java
+String getMailTlKey(MailMessage message)
+```
+
+---
+
+### `getMailTlArgs(MailMessage message)`
+
+Returns the arguments that are substituted into the translation format string.
+
+```java
+Object[] getMailTlArgs(MailMessage message)
+```
+
+---
+
+## `MailMessage`
+
+`MailMessage` is an **immutable** data class representing a single mail message. You receive
+`MailMessage` objects when handling `UserMailEvent` or reading a player's mailbox.
+
+| Method | Return type | Description |
+|--------|-------------|-------------|
+| `isRead()` | `boolean` | `true` if the recipient has already read this message. |
+| `isLegacy()` | `boolean` | `true` if this message was created via the legacy API or migrated from an older format. Legacy messages only carry `read` state and `message` content. |
+| `getSenderUsername()` | `String` | The sender's username at the time the message was sent. |
+| `getSenderUUID()` | `UUID` | The sender's UUID, or `null` if the sender has no UUID (e.g. console in legacy mode). |
+| `getTimeSent()` | `long` | Unix epoch milliseconds when the message was sent. |
+| `getTimeExpire()` | `long` | Unix epoch milliseconds when the message expires, or `0` if it does not expire. |
+| `getMessage()` | `String` | The message content, or the full legacy format string for legacy messages. |
+| `isExpired()` | `boolean` | `true` if the current time is past `getTimeExpire()` (always `false` when `getTimeExpire()` is `0`). |
+
+<Note>
+  `MailMessage` objects are immutable — you cannot modify them after construction. To send modified
+  content, create a new message via `MailService.sendMail()`.
+</Note>
+
+---
+
+## `MailSender`
+
+`MailSender` is the interface for any entity that can send mail. EssentialsX's `IUser` (players)
+and the console both implement it.
+
+| Method | Return type | Description |
+|--------|-------------|-------------|
+| `getName()` | `String` | The sender's display name or username. |
+| `getUUID()` | `UUID` | The sender's UUID, or `null` if the sender has no UUID. |
+
+You can implement `MailSender` in your own class to send mail as a custom entity (e.g. a system
+account):
+
+```java
+import net.essentialsx.api.v2.services.mail.MailSender;
+import java.util.UUID;
+
+public class SystemMailSender implements MailSender {
+    @Override
+    public String getName() {
+        return "System";
+    }
+
+    @Override
+    public UUID getUUID() {
+        return null; // No UUID for a system sender
+    }
+}
+```
+
+---
+
+## Examples
+
+### Sending a simple mail message
+
+```java
+import net.ess3.api.IEssentials;
+import net.ess3.api.IUser;
+import net.essentialsx.api.v2.services.mail.MailService;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+
+IEssentials ess = (IEssentials) Bukkit.getPluginManager().getPlugin("Essentials");
+MailService mailService = Bukkit.getServicesManager().load(MailService.class);
+
+if (mailService != null && ess != null) {
+    Player recipient = Bukkit.getPlayerExact("Steve");
+    IUser recipientUser = ess.getUser(recipient);
+    IUser senderUser = ess.getUser(senderPlayer);
+
+    if (recipientUser != null) {
+        mailService.sendMail(recipientUser, senderUser, "Hello from my plugin!");
+    }
+}
+```
+
+### Sending mail with an expiry time
+
+```java
+// Message expires in 24 hours
+long expireAt = System.currentTimeMillis() + (24 * 60 * 60 * 1000L);
+mailService.sendMail(recipientUser, senderUser, "This offer expires in 24 hours!", expireAt);
+```
+
+### Sending mail from a custom system sender
+
+```java
+MailSender system = new SystemMailSender(); // implements MailSender
+mailService.sendMail(recipientUser, system, "Your auction has ended.");
+```
+
+### Listening to incoming mail with `UserMailEvent`
+
+Use `UserMailEvent` to intercept or log mail as it arrives:
+
+```java
+import net.essentialsx.api.v2.events.UserMailEvent;
+import net.essentialsx.api.v2.services.mail.MailMessage;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+
+public class MailListener implements Listener {
+
+    @EventHandler
+    public void onUserMail(UserMailEvent event) {
+        MailMessage message = event.getMessage();
+
+        // Block expired messages just in case
+        if (message.isExpired()) {
+            event.setCancelled(true);
+            return;
+        }
+
+        getLogger().info("[Mail] " + event.getRecipient().getName()
+            + " received mail from " + message.getSenderUsername()
+            + ": " + message.getMessage());
+    }
+}
+```
+
+<Tip>
+  `UserMailEvent` has no guarantee about which thread it fires on. Check `event.isAsynchronous()`
+  before calling any Bukkit API methods that require the main thread, or schedule synchronous work
+  with `Bukkit.getScheduler().runTask(plugin, ...)`.
+</Tip>
+
+### Full plugin integration example
+
+```java
+@Override
+public void onEnable() {
+    IEssentials ess = (IEssentials) Bukkit.getPluginManager().getPlugin("Essentials");
+    if (ess == null) {
+        getLogger().severe("EssentialsX not found — disabling mail features.");
+        return;
+    }
+
+    MailService mailService = Bukkit.getServicesManager().load(MailService.class);
+    if (mailService == null) {
+        getLogger().severe("MailService not available — disabling mail features.");
+        return;
+    }
+
+    // Store for later use
+    this.mailService = mailService;
+    this.ess = ess;
+
+    Bukkit.getPluginManager().registerEvents(new MailListener(), this);
+}
+
+// Called when your plugin wants to notify a player
+public void notifyPlayer(Player player, String notification) {
+    IUser user = ess.getUser(player);
+    if (user == null) return;
+
+    if (player.isOnline()) {
+        player.sendMessage(notification);
+    } else {
+        // Player is offline — send as mail
+        mailService.sendMail(user, new SystemMailSender(), notification);
+    }
+}
+```
